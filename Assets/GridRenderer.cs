@@ -17,9 +17,9 @@ public class GridRenderer : MonoBehaviour
     {
         //  InitCommandBufferMat();
         Grid grid = GetComponent<GridMaster>().Grid;
-        indicesTotal = grid.GridVerts.Length;
+        indicesTotal = grid.GridVertsOut.Length;
         gridVertBuffer = new ComputeBuffer( indicesTotal, sizeof( float ) * 3, ComputeBufferType.Default );
-        gridVertBuffer.SetData( grid.GridVerts );
+        gridVertBuffer.SetData( grid.GridVertsOut );
         
         Mat_GridLines.SetBuffer( "VertBuffer", gridVertBuffer );
     }
@@ -60,7 +60,7 @@ public class GridRenderer : MonoBehaviour
         Mat_GridLines.SetPass( 0 );
 
         cams[cam] = cmd;
-        cmd.DrawProcedural( transform.localToWorldMatrix, Mat_GridLines, -1, MeshTopology.LineStrip, indicesTotal, 1 );
+        cmd.DrawProcedural( transform.localToWorldMatrix, Mat_GridLines, -1, MeshTopology.Lines, indicesTotal, 1 );
 
         cam.AddCommandBuffer( CameraEvent.AfterEverything, cmd );
     }
