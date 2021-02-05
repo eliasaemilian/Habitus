@@ -12,6 +12,7 @@ public class Grid
     public Cell[] Cells;
 
     public Vector3[] GridPoints;
+    public Vector3[] GridVerts;
 }
 
 [Serializable]
@@ -33,13 +34,16 @@ public class GridMaster : MonoBehaviour
 
 
 
-
     void Awake()
     {
         // TODO:
         SetCellSize();
         // Init Hexagonal Grid with row, column vars
         InitGrid();
+
+        GetGridVerts();
+
+
         /*
          * Define Hexagon
         // each tile saves:
@@ -115,15 +119,15 @@ public class GridMaster : MonoBehaviour
     }
 
 
-    private void OnDrawGizmos()
+    private void GetGridVerts()
     {
         if ( Grid.GridPoints.Length <= 0 ) return;
 
+        List<Vector3> verts = new List<Vector3>();
         float r = _tileWidth / 2;
         for ( int i = 0; i < Grid.GridPoints.Length; i++ )
         {
             Vector3 c = new Vector3( Grid.GridPoints[i].x, 0, Grid.GridPoints[i].z ); // center if tile
-            List<Vector3> verts = new List<Vector3>();
 
             Vector3 p1 = new Vector3( c.x + r, 0, c.z );
             Vector3 p2 = new Vector3( c.x + r * .5f, 0, c.z - r );
@@ -137,7 +141,6 @@ public class GridMaster : MonoBehaviour
 
             if ( cell.ColRow.y == 0 ) // ROW 0
             {
-
                 verts.Add( p1 );
                 verts.Add( p2 );
                 verts.Add( p6 );
@@ -160,7 +163,6 @@ public class GridMaster : MonoBehaviour
             else // all ROWS 1 TO END
             {
                 verts.Add( p6 );
-
                 if ( cell.ColRow.x == 0 ) // COLUMN 0
                 {
                     verts.Add( p4 );
@@ -169,33 +171,24 @@ public class GridMaster : MonoBehaviour
 
                 else // ROWS 1 TO END
                 {
-
                     // Column Even
                     if ( cell.ColRow.x % 2 != 0 )
                     {
                         verts.Add( p5 );
                         verts.Add( p1 );
-
                     }
-
                     if (cell.ColRow.x == Grid.rows - 1) verts.Add( p1 );
                 }
-
-
-            }
-
-
-
-
-            if ( i % 2 != 1 ) Gizmos.color = Color.red;
-            else Gizmos.color = Color.green;
-            for ( int j = 0; j < verts.Count; j++ )
-            {
-                Gizmos.DrawSphere( verts[j], .015f );
             }
         }
 
+        // INDICES
+        List<int> indices = new List<int>();
 
+
+
+
+        Grid.GridVerts = verts.ToArray();
     }
 
 
