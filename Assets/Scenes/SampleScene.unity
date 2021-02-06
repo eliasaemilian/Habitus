@@ -169,12 +169,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Grid:
-    rows: 5
-    columns: 5
+    rows: 7
+    columns: 7
     center:
       ColRow: {x: 0, y: 0}
       WorldPos: {x: 0, y: 0, z: 0}
       ElevatedOnZ: 0
+      Verts: []
     Cells: []
     GridPoints: []
     GridVerts: []

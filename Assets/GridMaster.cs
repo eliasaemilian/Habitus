@@ -23,6 +23,7 @@ public class Cell
     public Vector2 ColRow;
     public Vector3 WorldPos;
     public bool ElevatedOnZ;
+    public Vector3[] Verts;
 }
 
 public class GridMaster : MonoBehaviour
@@ -141,56 +142,62 @@ public class GridMaster : MonoBehaviour
             Vector3 p6 = new Vector3( c.x + r * .5f, 0, c.z + r ); // 5
 
             Cell cell = Grid.Cells[i];
-
+            List<Vector3> cverts = new List<Vector3>();
             // vertices
             if ( cell.ColRow.y == 0 ) // ROW 0
             {
                 if (cell.ColRow.x == 0)
                 {
-                    verts.Add( p1 );
-                    verts.Add( p2 );
-                    verts.Add( p3 );
-                    verts.Add( p4);
-                    verts.Add( p5 );
-                    verts.Add( p6 );
+                    cverts.Add( p1 );
+                    cverts.Add( p2 );
+                    cverts.Add( p3 );
+                    cverts.Add( p4);
+                    cverts.Add( p5 );
+                    cverts.Add( p6 );
                 }
                 else
                 {
-                    verts.Add( p1 );
-                    verts.Add( p2 );
+                    cverts.Add( p1 );
+                    cverts.Add( p2 );
 
                     if ( cell.ColRow.x % 2 != 0 )
                     {
-                        verts.Add( p5 );
+                        cverts.Add( p5 );
                     }
-                    else verts.Add( p3 );
+                    else cverts.Add( p3 );
 
-                    verts.Add( p6 );
+                    cverts.Add( p6 );
                 }
             }
             else // all ROWS 1 TO END
             {
                 if ( cell.ColRow.x == 0 ) // COLUMN 0
                 {
-                    verts.Add( p4 );
-                    verts.Add( p5 );
+                    cverts.Add( p4 );
+                    cverts.Add( p5 );
                 }
 
                 else // ROWS 1 TO END
                 {
-                    // Column Even
+                    // Column ODDS
                     if ( cell.ColRow.x % 2 != 0 )
                     {
-                        verts.Add( p1 );
-                        verts.Add( p5 );
+                        cverts.Add( p1 );
+                        cverts.Add( p5 );
                     }
-                    if ( cell.ColRow.x == Grid.rows - 1 ) verts.Add( p1 );
+                    else // Column EVEN
+                    {
+                        if ( cell.ColRow.x == Grid.columns - 1 ) cverts.Add( p1 );
+                    }
+                  
                 }
 
-                verts.Add( p6 );
+                cverts.Add( p6 );
 
             }
 
+            verts.AddRange( cverts );
+            cell.Verts = cverts.ToArray();
            
         }
 
@@ -271,29 +278,157 @@ public class GridMaster : MonoBehaviour
                 }
 
             }
-            else // ROW 1 & ABOVE
+            else  // ROW 1 & ABOVE
             {
+                int row0 = 6 + ( ( Grid.columns - 1 ) * 4 );
+                int half = ( Grid.columns / 2 );
 
                 if ( cell.ColRow.x == 0 )
-                {
-                    int row0 = 6 + ( ( Grid.columns - 1 ) * 4 ) - 1;
+                {                   
+                    int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
 
-                    int odd = 0;
-                    if ( Grid.columns % 2 != 0 ) odd = 1;
-                    int half = ( Grid.columns / 2 );
-                    Debug.Log( "Row0 is " + row0 + " Half " + half );
+                    int current = row0 + ( ((int)cell.ColRow.y - 1 ) * row ); // first index newly added in this row
+                    int pastRow = 6 + ( ( (int)cell.ColRow.x ) * 4 ) - 1;
+                    if (cell.ColRow.y > 1 ) pastRow = row0 + ( ( ( (int)cell.ColRow.y - 2 ) * row ) );
 
-                    int row = ( 3 * ( half + odd ) ) + ( 2 * half );
-                    int current = row0 + ( (int)cell.ColRow.y * row );
+                    if (cell.ColRow.y != 1)
+                    {
+                        indices.Add( pastRow + 1 );
+                        indices.Add( current );
 
-                    indices.Add( current );
-                    indices.Add( current );
-                    indices.Add( current );
-                    indices.Add( current );
-                    indices.Add( current );
+                        indices.Add( current );
+                        indices.Add( current + 1);
 
-                    // HALP =(
+                        indices.Add( current + 1);
+                        indices.Add( current + 2);
+
+                        indices.Add( current + 2);
+                        indices.Add( pastRow + 4);
+                    }
+                    else
+                    {
+                        indices.Add( pastRow + 3 );
+                        indices.Add( pastRow );
+
+                        indices.Add( pastRow - 1 );
+                        indices.Add( current );
+
+                        indices.Add( current );
+                        indices.Add( current + 1 );
+
+                        indices.Add( current + 1 );
+                        indices.Add( current + 2 );
+
+                        indices.Add( current + 2 );
+                        indices.Add( pastRow + 3 );
+                    }
+
+ 
                 }
+                else if ( cell.ColRow.x % 2 != 0 ) // ODDS 
+                {
+
+                    int curHalf = ( (int)cell.ColRow.x - 1  ) / 2;
+                    
+                    if ( curHalf < 0 ) curHalf = 0;
+
+                    int thisRowAdded = 3 + ( 3 * curHalf) + ( curHalf ); 
+                    if (cell.ColRow.x > 1) thisRowAdded = ( 3 * curHalf ) + ( curHalf + 1)  + 1; // 0 counts as even, add +1 since its 3 not 2 verts added
+
+
+                    int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
+
+                    int current = row0 + ( ( (int)cell.ColRow.y - 1 ) * row ) + thisRowAdded; // first index newly added in this row + everything added to this row - > + 1 this is where we are now
+                    if ( cell.ColRow.x > 1 ) current += 1;
+
+                    int pastRow = 6 + ( 4 * ( (int)cell.ColRow.x - 1 ) ); 
+                    if ( cell.ColRow.y > 1) pastRow = (   Mathf.Clamp(( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y) * ( row ) ) + thisRowAdded + row0;
+                    if ( cell.ColRow.x > 1 ) pastRow += 1;
+
+                        if ( cell.ColRow.x == 1 && cell.ColRow.y == 1 )
+                    {
+                        indices.Add( current );
+                        indices.Add( pastRow + 3 );
+                    }
+                    else
+                    {
+                        indices.Add( current );
+                        indices.Add( pastRow + 2 );
+                    }
+
+                    indices.Add( current - 1 );
+                    indices.Add( current + 1 );
+
+                    indices.Add( current + 1 );
+                    indices.Add( current + 2 );
+
+                    indices.Add( current + 2 );
+                    indices.Add( current );
+
+                    //if ( cell.ColRow.y == 2 )
+                    //{
+                    //    if ( cell.ColRow.x == 1 )
+                    //        Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (37) is {current}, pastRow (25) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
+                    //    else if ( cell.ColRow.x == 3 )
+                    //        Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (41) is {current}, pastRow (29) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
+
+                    //    if ( cell.ColRow.x == 3 ) break;
+                    //}
+
+                }
+                else // EVENS
+                {
+
+                    int curHalf = ( (int)cell.ColRow.x ) / 2;
+                    
+                    int thisRowAdded = 3 + ( 3 *  curHalf ) + ( curHalf - 1) ;
+
+
+
+                    int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
+
+                    int current = row0 + ( ( (int)cell.ColRow.y - 1 ) * row ) + thisRowAdded;
+
+                    int pastRow = 6 + ( 4 * ( (int)cell.ColRow.x - 1 ) );
+                    if ( cell.ColRow.y > 1 ) pastRow = ( Mathf.Clamp( ( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y ) * ( row ) ) + thisRowAdded + row0;
+
+                    if ( cell.ColRow.y == 2 )
+                    {
+                        if ( cell.ColRow.x == 2 )
+                            Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (40 single) is {current}, pastRow (28) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
+                        else if ( cell.ColRow.x == 4 )
+                            Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (44) is {current}, pastRow (32) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
+
+
+                    }
+
+
+
+                    if (cell.ColRow.x == Grid.columns - 1)
+                    {
+                        indices.Add( current - 3 );
+                        indices.Add( current + 1 );
+
+                        indices.Add( current + 1);
+                        indices.Add( current );
+
+                        indices.Add( current );
+                        if ( cell.ColRow.y > 1 ) indices.Add( pastRow + 1 );
+                        else indices.Add( pastRow + 3 );
+
+                    }
+                    else
+                    {
+                        indices.Add( current - 3 );
+                        indices.Add( current );
+
+                        indices.Add( current );
+                        if ( cell.ColRow.y > 1 ) indices.Add( pastRow + 2 );
+                        else indices.Add( pastRow + 6 );
+                    }
+
+                }
+
             }
         }
            
@@ -308,10 +443,18 @@ public class GridMaster : MonoBehaviour
             if ( Grid.GridIndices[j] < Grid.GridVerts.Length && Grid.GridIndices[j] >= 0 )
                 Grid.GridVertsOut[j] = Grid.GridVerts[Grid.GridIndices[j]];
             else Debug.Log( " J IS " + j + " and above " + Grid.GridIndices.Length );
+
         }
 
     }
 
+    private void OnDrawGizmos()
+    {
+        for ( int j = 0; j < Grid.GridVerts.Length; j++ )
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere( Grid.GridVerts[j], 0.009f );
+        }
+    }
 
-    
 }
