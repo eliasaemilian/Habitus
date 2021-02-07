@@ -169,8 +169,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Grid:
-    rows: 7
-    columns: 7
+    rows: 5
+    columns: 5
     center:
       ColRow: {x: 0, y: 0}
       WorldPos: {x: 0, y: 0, z: 0}

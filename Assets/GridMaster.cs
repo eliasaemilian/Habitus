@@ -282,13 +282,20 @@ public class GridMaster : MonoBehaviour
             {
                 int row0 = 6 + ( ( Grid.columns - 1 ) * 4 );
                 int half = ( Grid.columns / 2 );
+                int odd = ( Grid.columns % 2 != 0 ) ? 1 : 0;
 
                 if ( cell.ColRow.x == 0 )
-                {                   
+                {
+
                     int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
+                    if (odd == 0) row = 3 + ( 3 * ( half ) ) + ( half - 1 );
 
                     int current = row0 + ( ((int)cell.ColRow.y - 1 ) * row ); // first index newly added in this row
+
+
                     int pastRow = 6 + ( ( (int)cell.ColRow.x ) * 4 ) - 1;
+                    if ( cell.ColRow.y == 1 ) pastRow = 0;
+
                     if (cell.ColRow.y > 1 ) pastRow = row0 + ( ( ( (int)cell.ColRow.y - 2 ) * row ) );
 
                     if (cell.ColRow.y != 1)
@@ -307,10 +314,10 @@ public class GridMaster : MonoBehaviour
                     }
                     else
                     {
-                        indices.Add( pastRow + 3 );
-                        indices.Add( pastRow );
+                        indices.Add( pastRow + 8 );
+                        indices.Add( pastRow + 5 );
 
-                        indices.Add( pastRow - 1 );
+                        indices.Add( pastRow + 4 );
                         indices.Add( current );
 
                         indices.Add( current );
@@ -320,10 +327,15 @@ public class GridMaster : MonoBehaviour
                         indices.Add( current + 2 );
 
                         indices.Add( current + 2 );
-                        indices.Add( pastRow + 3 );
+                        indices.Add( pastRow + 8 );
                     }
 
- 
+                    //if ( cell.ColRow.y == 1 )
+                    //    Debug.Log( $"Row is {row} and current (34) is {current}, pastRow (0) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
+                    //else if ( cell.ColRow.y == 2 )
+                    //    Debug.Log( $"Row is {row} and current (52) is {current}, pastRow (34) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
+
+
                 }
                 else if ( cell.ColRow.x % 2 != 0 ) // ODDS 
                 {
@@ -337,6 +349,7 @@ public class GridMaster : MonoBehaviour
 
 
                     int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
+                    if ( odd == 0 ) row = 3 + ( 3 * ( half ) ) + ( half - 1 );
 
                     int current = row0 + ( ( (int)cell.ColRow.y - 1 ) * row ) + thisRowAdded; // first index newly added in this row + everything added to this row - > + 1 this is where we are now
                     if ( cell.ColRow.x > 1 ) current += 1;
@@ -345,7 +358,7 @@ public class GridMaster : MonoBehaviour
                     if ( cell.ColRow.y > 1) pastRow = (   Mathf.Clamp(( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y) * ( row ) ) + thisRowAdded + row0;
                     if ( cell.ColRow.x > 1 ) pastRow += 1;
 
-                        if ( cell.ColRow.x == 1 && cell.ColRow.y == 1 )
+                    if ( cell.ColRow.x == 1 && cell.ColRow.y == 1 )
                     {
                         indices.Add( current );
                         indices.Add( pastRow + 3 );
@@ -365,15 +378,15 @@ public class GridMaster : MonoBehaviour
                     indices.Add( current + 2 );
                     indices.Add( current );
 
-                    //if ( cell.ColRow.y == 2 )
-                    //{
-                    //    if ( cell.ColRow.x == 1 )
-                    //        Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (37) is {current}, pastRow (25) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
-                    //    else if ( cell.ColRow.x == 3 )
-                    //        Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (41) is {current}, pastRow (29) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
+                    if ( cell.ColRow.y == 2 )
+                    {
+                        if ( cell.ColRow.x == 1 )
+                            Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (55) is {current}, pastRow (37) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
+                        else if ( cell.ColRow.x == 3 )
+                            Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (55) is {current}, pastRow (37) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
 
-                    //    if ( cell.ColRow.x == 3 ) break;
-                    //}
+                      //  if ( cell.ColRow.x == 3 ) break;
+                    }
 
                 }
                 else // EVENS
@@ -386,6 +399,7 @@ public class GridMaster : MonoBehaviour
 
 
                     int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
+                    if ( odd == 0 ) row = 3 + ( 3 * ( half ) ) + ( half - 1 );
 
                     int current = row0 + ( ( (int)cell.ColRow.y - 1 ) * row ) + thisRowAdded;
 
