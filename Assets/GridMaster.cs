@@ -27,7 +27,7 @@ public class Grid
         int half = ( size - 1 ) / 2;
         if ( size % 2 != 0 )
         {
-            TileTypes[half, half] = TileType.blank;
+            TileTypes[half, half] = TileType.mountain;
             TileTypes[half + 1, half] = TileType.blank;
             TileTypes[half - 1, half] = TileType.blank;
             TileTypes[half, half + 1] = TileType.blank;
@@ -56,6 +56,8 @@ public class Cell
     public Vector3[] Verts;
 
     public Tile Tile;
+
+
 }
 
 public class Tile
@@ -88,20 +90,10 @@ public class GridMaster : MonoBehaviour
     void Awake()
     {
         
-        // TODO:
         SetCellSize();
-        // Init Hexagonal Grid with row, column vars
         InitGrid();
 
         GetGridVerts();
-
-
-        /*
-         * Define Hexagon
-        // each tile saves:
-            // its pos in grid
-            // its current type/color
-            // its neighbour tiles
 
         // IDEAS:
 
@@ -129,22 +121,16 @@ public class GridMaster : MonoBehaviour
         {
             for ( int x = 0; x < ( Grid.rows ); x++ )
             {
-                // todo
-                // get points for each grid point here -DONE
-                // get hexagon vertices points from grid points (ignore doubles/ redundant points) - DONE
-
-                // then
-                // write CB wit computeshader-> linestrip from points
                 Cell c = new Cell();
                 c.ColRow = new Vector2( x, y );
                 c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
 
-                if (Grid.TileTypes[y, x] > 0)
-                {
-                    GameObject debug = Instantiate( _tile );
-                    debug.name = "Tile " + c.ColRow;
-                    debug.transform.position = c.WorldPos;
-                }
+                //if (Grid.TileTypes[y, x] > 0)
+                //{
+                //    AddTileToCell( c, Grid.TileTypes[y, x] );
+                //}
+
+                AddTileToCell( c, TileType.blank );
 
                 Grid.Cells[i] = c;
                 Grid.GridPoints[i] = c.WorldPos;
@@ -181,6 +167,17 @@ public class GridMaster : MonoBehaviour
         _tileThickness = bounds.size.y;
     }
 
+
+    private void AddTileToCell( Cell c, TileType type )
+    {
+        GameObject debug = Instantiate( _tile );
+        var mat = debug.GetComponentInChildren<MeshRenderer>().material;
+        if ( type == TileType.mountain ) mat.color = Color.red;
+        else if ( type == TileType.plane ) mat.color = Color.green;
+
+        debug.name = "Tile " + c.ColRow;
+        debug.transform.position = c.WorldPos;
+    }
 
     private void GetGridVerts()
     {
@@ -498,6 +495,7 @@ public class GridMaster : MonoBehaviour
         }
 
     }
+
 
     private void OnDrawGizmos()
     {

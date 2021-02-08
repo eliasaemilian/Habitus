@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Used to save generated maps
+/// </summary>
 [CreateAssetMenu( fileName = "MapConfig", menuName ="Configs/Map")]
 public class MapConfig : ScriptableObject
 {
-    public TileType[,] TileTypes;
+    public int GridSize;
+    [Range(0, 1)] public float Mountyness;
 }
