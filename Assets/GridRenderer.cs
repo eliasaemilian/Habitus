@@ -12,15 +12,31 @@ public class GridRenderer : MonoBehaviour
     private Dictionary<Camera, CommandBuffer> cams = new Dictionary<Camera, CommandBuffer>();
 
     int indicesTotal;
+    public bool gridOff;
+    private void OnToggleGrid()
+    {
+        gridOff = !gridOff;
+        if ( !gridOff ) InitBuffer();
+    }
 
     void Start()
     {
-        //  InitCommandBufferMat();
+        // Toggle Grid
+        InterfaceListener.ToggleGrid.AddListener( OnToggleGrid );
+
+
+        //
+        InitBuffer();
+
+    }
+
+    private void InitBuffer()
+    {
         Grid grid = GetComponent<GridMaster>().Grid;
         indicesTotal = grid.GridVertsOut.Length;
         gridVertBuffer = new ComputeBuffer( indicesTotal, sizeof( float ) * 3, ComputeBufferType.Default );
         gridVertBuffer.SetData( grid.GridVertsOut );
-        
+
         Mat_GridLines.SetBuffer( "VertBuffer", gridVertBuffer );
     }
 
@@ -39,7 +55,7 @@ public class GridRenderer : MonoBehaviour
 
     private void OnWillRenderObject()
     {
-        bool isActive = gameObject.activeInHierarchy && enabled;
+        bool isActive = gameObject.activeInHierarchy && enabled && !gridOff;
         if ( !isActive )
         {
             OnDisable();

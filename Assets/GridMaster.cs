@@ -6,6 +6,7 @@ using System;
 [Serializable]
 public class Grid
 {
+    public int size;
     public int rows;
     public int columns;
     public Cell center;
@@ -15,6 +16,35 @@ public class Grid
     public Vector3[] GridVerts;
     public Vector3[] GridVertsOut;
     public int[] GridIndices;
+
+    public TileType[,] TileTypes;
+
+
+    public void InitTileTypes()
+    {
+        TileTypes = new TileType[rows, columns];
+        size = columns;
+        int half = ( size - 1 ) / 2;
+        if ( size % 2 != 0 )
+        {
+            TileTypes[half, half] = TileType.blank;
+            TileTypes[half + 1, half] = TileType.blank;
+            TileTypes[half - 1, half] = TileType.blank;
+            TileTypes[half, half + 1] = TileType.blank;
+            TileTypes[half, half - 1] = TileType.blank;
+            TileTypes[half - 1, half + 1] = TileType.blank;
+            TileTypes[half - 1, half - 1] = TileType.blank;
+        }
+        else // even 
+        {
+            TileTypes[half, half] = TileType.blank;
+            TileTypes[half + 1, half] = TileType.blank;
+            TileTypes[half, half + 1] = TileType.blank;
+        }
+
+
+    }
+
 }
 
 [Serializable]
@@ -24,6 +54,24 @@ public class Cell
     public Vector3 WorldPos;
     public bool ElevatedOnZ;
     public Vector3[] Verts;
+
+    public Tile Tile;
+}
+
+public class Tile
+{
+    public TileType Type;
+}
+
+public enum TileType
+{
+    undefined, // 0
+    blank, // 1
+    mountain,
+    plane,
+    forest,
+    river,
+    lake
 }
 
 public class GridMaster : MonoBehaviour
@@ -34,11 +82,12 @@ public class GridMaster : MonoBehaviour
 
     private float _tileWidth;
     private float _tileHeight;
-
+    private float _tileThickness;
 
 
     void Awake()
     {
+        
         // TODO:
         SetCellSize();
         // Init Hexagonal Grid with row, column vars
@@ -68,10 +117,13 @@ public class GridMaster : MonoBehaviour
     {
         Grid.center = new Cell();
         Grid.center.ColRow = new Vector2( 0, 0 );
-        Grid.center.WorldPos = GetWorldPos( Grid.center.WorldPos, out Grid.center.ElevatedOnZ );
+        Grid.center.WorldPos = new Vector3( 0, 0, 0 );
 
         Grid.Cells = new Cell[Grid.columns * Grid.rows];
         Grid.GridPoints = new Vector3[Grid.columns * Grid.rows];
+
+        Grid.InitTileTypes();
+
         int i = 0;
         for ( int y = 0; y < ( Grid.columns ); y++ )
         {
@@ -87,9 +139,12 @@ public class GridMaster : MonoBehaviour
                 c.ColRow = new Vector2( x, y );
                 c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
 
-                GameObject debug = Instantiate( _tile );
-                debug.name = "Tile " + c.ColRow;
-                debug.transform.position = c.WorldPos;
+                if (Grid.TileTypes[y, x] > 0)
+                {
+                    GameObject debug = Instantiate( _tile );
+                    debug.name = "Tile " + c.ColRow;
+                    debug.transform.position = c.WorldPos;
+                }
 
                 Grid.Cells[i] = c;
                 Grid.GridPoints[i] = c.WorldPos;
@@ -104,10 +159,11 @@ public class GridMaster : MonoBehaviour
     {
         float s = 0;
 
-        if ( gridPos.x % 2 != 0 ) s = 1;
+        if ( gridPos.x % 2 != 0 ) s = 1; 
 
-        float x = Grid.center.WorldPos.x + gridPos.x * ( ( _tileWidth / 2 ) + ( _tileWidth / 4 ) );
-        float z = Grid.center.WorldPos.z + ( s + gridPos.y * 2 ) * ( _tileHeight / 2 );
+        float x = Grid.center.WorldPos.x + gridPos.x * ( ( _tileHeight / 2 ) + ( _tileHeight / 4 ) );
+        float z = Grid.center.WorldPos.z + ( s + gridPos.y * 2 ) * ( _tileWidth / 2 );
+
         elevatedOnZ = s != 0 ? true : false;
         return new Vector3( x, 0, z );
     }
@@ -117,8 +173,12 @@ public class GridMaster : MonoBehaviour
         GameObject readBoundsTile = Instantiate( _tile );
         var bounds = readBoundsTile.GetComponentInChildren<Collider>().bounds;
         DestroyImmediate( readBoundsTile );
-        _tileWidth = bounds.size.x;
-        _tileHeight = bounds.size.z;
+        _tileWidth = 2;
+        _tileHeight = 1.73f;
+
+        _tileWidth = bounds.size.z;
+        _tileHeight = bounds.size.x;
+        _tileThickness = bounds.size.y;
     }
 
 
@@ -129,17 +189,22 @@ public class GridMaster : MonoBehaviour
         // vertices
         List<int> indices = new List<int>();
         List<Vector3> verts = new List<Vector3>();
-        float r = _tileWidth / 2;
+        //float r = _tileWidth * .5f;
+
+        float r = _tileHeight * .5f;
+        float w = _tileWidth * .5f;
+
         for ( int i = 0; i < Grid.GridPoints.Length; i++ )
         {
             Vector3 c = new Vector3( Grid.GridPoints[i].x, 0, Grid.GridPoints[i].z ); // center if tile
+            float y = _tileThickness;
 
-            Vector3 p1 = new Vector3( c.x + r, 0, c.z ); // 0
-            Vector3 p2 = new Vector3( c.x + r * .5f, 0, c.z - r ); // 1
-            Vector3 p3 = new Vector3( c.x - r * .5f, 0, c.z - r ); // 2
-            Vector3 p4 = new Vector3( c.x - r, 0, c.z ); // 3
-            Vector3 p5 = new Vector3( c.x - r * .5f, 0, c.z + r ); // 4
-            Vector3 p6 = new Vector3( c.x + r * .5f, 0, c.z + r ); // 5
+            Vector3 p1 = new Vector3( c.x + r, y, c.z ); // 0
+            Vector3 p2 = new Vector3( c.x + r * .5f, y, c.z - w ); // 1
+            Vector3 p3 = new Vector3( c.x - r * .5f, y, c.z - w ); // 2
+            Vector3 p4 = new Vector3( c.x - r, y, c.z ); // 3
+            Vector3 p5 = new Vector3( c.x - r * .5f, y, c.z + w ); // 4
+            Vector3 p6 = new Vector3( c.x + r * .5f, y, c.z + w ); // 5
 
             Cell cell = Grid.Cells[i];
             List<Vector3> cverts = new List<Vector3>();
@@ -200,8 +265,6 @@ public class GridMaster : MonoBehaviour
             cell.Verts = cverts.ToArray();
            
         }
-
-        int totalIndices = 12 * ( Grid.columns * Grid.rows );
 
         for ( int i = 0; i < Grid.GridPoints.Length; i++ )
         {
@@ -330,12 +393,6 @@ public class GridMaster : MonoBehaviour
                         indices.Add( pastRow + 8 );
                     }
 
-                    //if ( cell.ColRow.y == 1 )
-                    //    Debug.Log( $"Row is {row} and current (34) is {current}, pastRow (0) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
-                    //else if ( cell.ColRow.y == 2 )
-                    //    Debug.Log( $"Row is {row} and current (52) is {current}, pastRow (34) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
-
-
                 }
                 else if ( cell.ColRow.x % 2 != 0 ) // ODDS 
                 {
@@ -378,15 +435,6 @@ public class GridMaster : MonoBehaviour
                     indices.Add( current + 2 );
                     indices.Add( current );
 
-                    if ( cell.ColRow.y == 2 )
-                    {
-                        if ( cell.ColRow.x == 1 )
-                            Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (55) is {current}, pastRow (37) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
-                        else if ( cell.ColRow.x == 3 )
-                            Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (55) is {current}, pastRow (37) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
-
-                      //  if ( cell.ColRow.x == 3 ) break;
-                    }
 
                 }
                 else // EVENS
@@ -405,17 +453,6 @@ public class GridMaster : MonoBehaviour
 
                     int pastRow = 6 + ( 4 * ( (int)cell.ColRow.x - 1 ) );
                     if ( cell.ColRow.y > 1 ) pastRow = ( Mathf.Clamp( ( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y ) * ( row ) ) + thisRowAdded + row0;
-
-                    if ( cell.ColRow.y == 2 )
-                    {
-                        if ( cell.ColRow.x == 2 )
-                            Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (40 single) is {current}, pastRow (28) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
-                        else if ( cell.ColRow.x == 4 )
-                            Debug.Log( $"This Row Added {thisRowAdded}, Row is {row} and current (44) is {current}, pastRow (32) is {pastRow} and current Col: {cell.ColRow.x}, Row: {cell.ColRow.y}" );
-
-
-                    }
-
 
 
                     if (cell.ColRow.x == Grid.columns - 1)
@@ -467,7 +504,8 @@ public class GridMaster : MonoBehaviour
         for ( int j = 0; j < Grid.GridVerts.Length; j++ )
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere( Grid.GridVerts[j], 0.009f );
+            Gizmos.DrawSphere( Grid.GridVerts[j], 0.07f );
+
         }
     }
 

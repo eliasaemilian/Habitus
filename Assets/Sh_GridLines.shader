@@ -41,6 +41,7 @@
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(VertBuffer[id]);
+                
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
