@@ -168,14 +168,14 @@ public class GridMaster : MonoBehaviour
         // bottom hex plane
         for ( int i = 1; i < 11; i += 2 )
         {
-            otherIndices[c] = i;
+            otherIndices[c] = 0;
             otherIndices[c + 1] = i + 2;
-            otherIndices[c + 2] = 0;
+            otherIndices[c + 2] = i;
             c += 3;
         }
-        otherIndices[c] = 11;
+        otherIndices[c] = 0;
         otherIndices[c + 1] = 1;
-        otherIndices[c + 2] = 0;
+        otherIndices[c + 2] = 11;
         c += 3;
 
 

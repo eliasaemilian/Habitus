@@ -34,6 +34,7 @@ public class GridRenderer : MonoBehaviour
     {
         Grid grid = GetComponent<GridMaster>().Grid;
         indicesTotal = grid.GridVertsOut.Length;
+
         if ( indicesTotal <= 0 ) return;
 
         gridVertBuffer = new ComputeBuffer( indicesTotal, sizeof( float ) * 3, ComputeBufferType.Default );
