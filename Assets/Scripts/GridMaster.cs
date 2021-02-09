@@ -1,83 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-
-[Serializable]
-public class Grid
-{
-    public int size;
-    public int rows;
-    public int columns;
-    public Cell center;
-    public Cell[] Cells;
-
-    public Vector3[] GridPoints;
-    public Vector3[] GridVerts;
-    public Vector3[] GridVertsOut;
-    public int[] GridIndices;
-
-    public TileType[,] TileTypes;
-
-
-    public void InitTileTypes()
-    {
-        TileTypes = new TileType[rows, columns];
-        size = columns;
-        int half = ( size - 1 ) / 2;
-        if ( size % 2 != 0 )
-        {
-            TileTypes[half, half] = TileType.mountain;
-            TileTypes[half + 1, half] = TileType.blank;
-            TileTypes[half - 1, half] = TileType.blank;
-            TileTypes[half, half + 1] = TileType.blank;
-            TileTypes[half, half - 1] = TileType.blank;
-            TileTypes[half - 1, half + 1] = TileType.blank;
-            TileTypes[half - 1, half - 1] = TileType.blank;
-        }
-        else // even 
-        {
-            TileTypes[half, half] = TileType.blank;
-            TileTypes[half + 1, half] = TileType.blank;
-            TileTypes[half, half + 1] = TileType.blank;
-        }
-
-
-    }
-
-}
-
-[Serializable]
-public class Cell
-{
-    public Vector2 ColRow;
-    public Vector3 WorldPos;
-    public bool ElevatedOnZ;
-    public Vector3[] Verts;
-
-    public Tile Tile;
-
-
-}
-
-public class Tile
-{
-    public TileType Type;
-}
-
-public enum TileType
-{
-    undefined, // 0
-    blank, // 1
-    mountain,
-    plane,
-    forest,
-    river,
-    lake
-}
 
 public class GridMaster : MonoBehaviour
 {
+    public static GridMaster Instance;
+
     public Grid Grid;
 
     [SerializeField] private GameObject _tile = null;
@@ -89,11 +17,12 @@ public class GridMaster : MonoBehaviour
 
     void Awake()
     {
-        
-        SetCellSize();
-        InitGrid();
+        if ( Instance == null ) Instance = this;
+        else Destroy( gameObject );
+        //SetCellSize();
+        //InitGrid(Grid.columns);
 
-        GetGridVerts();
+        //GetGridVerts();
 
         // IDEAS:
 
@@ -105,32 +34,53 @@ public class GridMaster : MonoBehaviour
          */
     }
 
-    void InitGrid()
+    private void ClearGrid()
     {
+        foreach ( Cell c in Grid.Cells )
+        {
+            if ( c.Tile.RefGO != null ) DestroyImmediate( c.Tile.RefGO ); 
+        }
+    }
+
+    public void OnClickClearGrid() => ClearGrid();
+
+    public void InitGrid(int size, TileType[,] tileTypes)
+    {
+        ClearGrid();
+        SetCellSize();
+
+
+
+        Grid = new Grid();
+        Grid.size = size;
+
+
         Grid.center = new Cell();
         Grid.center.ColRow = new Vector2( 0, 0 );
         Grid.center.WorldPos = new Vector3( 0, 0, 0 );
 
-        Grid.Cells = new Cell[Grid.columns * Grid.rows];
-        Grid.GridPoints = new Vector3[Grid.columns * Grid.rows];
+        Grid.Cells = new Cell[Grid.size * Grid.size];
+        Grid.GridPoints = new Vector3[Grid.size * Grid.size];
+        Grid.TileTypes = tileTypes;
 
-        Grid.InitTileTypes();
+        //Grid.InitTileTypes();
 
         int i = 0;
-        for ( int y = 0; y < ( Grid.columns ); y++ )
+        for ( int y = 0; y < ( Grid.size ); y++ )
         {
-            for ( int x = 0; x < ( Grid.rows ); x++ )
+            for ( int x = 0; x < ( Grid.size ); x++ )
             {
                 Cell c = new Cell();
                 c.ColRow = new Vector2( x, y );
                 c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
 
-                //if (Grid.TileTypes[y, x] > 0)
-                //{
-                //    AddTileToCell( c, Grid.TileTypes[y, x] );
-                //}
+                if ( Grid.TileTypes[y, x] > 0 )
+                {
+                    c.Tile = new Tile();
+                    c.Tile.RefGO = AddTileToCell( c, Grid.TileTypes[y, x] );
+                }
 
-                AddTileToCell( c, TileType.blank );
+                // AddTileToCell( c, TileType.blank );
 
                 Grid.Cells[i] = c;
                 Grid.GridPoints[i] = c.WorldPos;
@@ -139,6 +89,8 @@ public class GridMaster : MonoBehaviour
                 i++;
             }
         }
+
+        GetGridVerts();
     }
 
     private Vector3 GetWorldPos( Vector2 gridPos, out bool elevatedOnZ )
@@ -168,7 +120,7 @@ public class GridMaster : MonoBehaviour
     }
 
 
-    private void AddTileToCell( Cell c, TileType type )
+    private GameObject AddTileToCell( Cell c, TileType type )
     {
         GameObject debug = Instantiate( _tile );
         var mat = debug.GetComponentInChildren<MeshRenderer>().material;
@@ -177,6 +129,8 @@ public class GridMaster : MonoBehaviour
 
         debug.name = "Tile " + c.ColRow;
         debug.transform.position = c.WorldPos;
+
+        return debug;
     }
 
     private void GetGridVerts()
@@ -249,7 +203,7 @@ public class GridMaster : MonoBehaviour
                     }
                     else // Column EVEN
                     {
-                        if ( cell.ColRow.x == Grid.columns - 1 ) cverts.Add( p1 );
+                        if ( cell.ColRow.x == Grid.size - 1 ) cverts.Add( p1 ); //repl. col
                     }
                   
                 }
@@ -340,9 +294,9 @@ public class GridMaster : MonoBehaviour
             }
             else  // ROW 1 & ABOVE
             {
-                int row0 = 6 + ( ( Grid.columns - 1 ) * 4 );
-                int half = ( Grid.columns / 2 );
-                int odd = ( Grid.columns % 2 != 0 ) ? 1 : 0;
+                int row0 = 6 + ( ( Grid.size - 1 ) * 4 ); // repl col for all 3
+                int half = ( Grid.size / 2 );
+                int odd = ( Grid.size % 2 != 0 ) ? 1 : 0;
 
                 if ( cell.ColRow.x == 0 )
                 {
@@ -452,7 +406,7 @@ public class GridMaster : MonoBehaviour
                     if ( cell.ColRow.y > 1 ) pastRow = ( Mathf.Clamp( ( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y ) * ( row ) ) + thisRowAdded + row0;
 
 
-                    if (cell.ColRow.x == Grid.columns - 1)
+                    if (cell.ColRow.x == Grid.size - 1) // repl. col
                     {
                         indices.Add( current - 3 );
                         indices.Add( current + 1 );
