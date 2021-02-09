@@ -27,6 +27,7 @@ public class MapGeneration : MonoBehaviour
 
     private void ComputeMountains()
     {
+        // 1st pass, set main mountain tiles
         for ( int x = 0; x < MapConfig.GridSize; x++ )
         {
             for ( int y = 0; y < MapConfig.GridSize; y++ )
@@ -37,14 +38,16 @@ public class MapGeneration : MonoBehaviour
 
                 float r = Random.Range( 0f, 1f );
 
-                if ( r < prob )
-                {
-                    tileTypes[x, y] = TileType.mountain;
-                }
+                if ( r < prob ) tileTypes[x, y] = TileType.mountain;
                 else tileTypes[x, y] = TileType.blank;
                // Debug.Log( $"X: {x}, Y: {y} : Mountain Prob is {prob}" );
             }
         }
+
+    }
+
+    private void ComputeMountainHeightmap()
+    {
 
     }
 

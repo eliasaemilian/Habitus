@@ -313,6 +313,10 @@ MonoBehaviour:
     GridVertsOut: []
     GridIndices: 
   _tile: {fileID: 7124045268657375602, guid: 20339fedcc31887478c0e483c385e85d, type: 3}
+  testMat: {fileID: 2100000, guid: 71571ade0a0512d429d6c7559a72880a, type: 2}
+  testMat2: {fileID: 2100000, guid: afb409e5f4a2a5f4cb3c3696613e7e7b, type: 2}
+  TestVerts: []
+  TestIndices: 
 --- !u!114 &510568829
 MonoBehaviour:
   m_ObjectHideFlags: 0

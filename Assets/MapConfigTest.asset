@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: MapConfigTest
   m_EditorClassIdentifier: 
   GridSize: 10
-  Mountyness: 0.06
+  Mountyness: 0.16

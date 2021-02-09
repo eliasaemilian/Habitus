@@ -14,6 +14,10 @@ public class GridMaster : MonoBehaviour
     private float _tileHeight;
     private float _tileThickness;
 
+    public Material testMat, testMat2;
+    public List<Vector3> TestVerts;
+    public List<int> TestIndices;
+
 
     void Awake()
     {
@@ -77,7 +81,7 @@ public class GridMaster : MonoBehaviour
                 if ( Grid.TileTypes[y, x] > 0 )
                 {
                     c.Tile = new Tile();
-                    c.Tile.RefGO = AddTileToCell( c, Grid.TileTypes[y, x] );
+                 //   c.Tile.RefGO = AddTileToCell( c, Grid.TileTypes[y, x] );
                 }
 
                 // AddTileToCell( c, TileType.blank );
@@ -133,6 +137,109 @@ public class GridMaster : MonoBehaviour
         return debug;
     }
 
+    private Vector3[] GenHexagonMeshInfo(Vector3 center, Vector3[] oVerts)
+    {
+        // verts
+        Vector3[] verts = new Vector3[24 + 2];
+        int[] otherIndices = new int[( 3 * 24 ) + 36];
+        int[] topPlane = new int[3 * 12];
+        int c = 1;
+        Vector3 cTop = new Vector3( center.x, _tileThickness, center.z ); // index 13
+        Vector3 cBot = center; // index 0
+        verts[0] = cBot;
+        verts[13] = cTop;
+        for ( int i = 0; i < oVerts.Length; i++ )
+        {
+            verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+            verts[c + 1] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+            c += 2;
+        }
+        c = 14;
+        for ( int i = 0; i < oVerts.Length; i++ )
+        {
+            verts[c] = oVerts[i];
+            verts[c + 1] = oVerts[i];
+            c += 2;
+        }
+
+
+        // indices
+        c = 0;
+        // bottom hex plane
+        for ( int i = 1; i < 11; i += 2 )
+        {
+            otherIndices[c] = i;
+            otherIndices[c + 1] = i + 2;
+            otherIndices[c + 2] = 0;
+            c += 3;
+        }
+        otherIndices[c] = 11;
+        otherIndices[c + 1] = 1;
+        otherIndices[c + 2] = 0;
+        c += 3;
+
+
+        // sides
+        for ( int i = 0; i < 5; i ++ )
+        {
+            otherIndices[c] = 15 + ( i * 2 );
+            otherIndices[c + 1] = ( i * 2 ) + 2 ;
+            otherIndices[c + 2] = 15 + ( i * 2 ) + 2;
+
+            otherIndices[c + 3] = ( i * 2 ) + 2;
+            otherIndices[c + 4] = ( i * 2 ) + 4;
+            otherIndices[c + 5] = 15 + ( i * 2 ) + 2;
+
+            c += 6;
+        }
+
+        otherIndices[c] = 12;
+        otherIndices[c + 1] = 15;
+        otherIndices[c + 2] = 25;
+
+        otherIndices[c + 3] = 15;
+        otherIndices[c + 4] = 12;
+        otherIndices[c + 5] = 2;
+
+
+        // top hex plane
+        c = 0;
+        for ( int i = 14; i < 24; i += 2 )
+        {
+            topPlane[c] = i;
+            topPlane[c + 1] = i + 2;
+            topPlane[c + 2] = 13;
+            c += 3;
+        }
+        topPlane[c] = 24;
+        topPlane[c + 1] = 14;
+        topPlane[c + 2] = 13;
+
+
+
+        GameObject debug = new GameObject();
+        debug.name = "test";
+        MeshRenderer renderer = debug.AddComponent<MeshRenderer>();
+        MeshFilter filter = debug.AddComponent<MeshFilter>();
+        renderer.material = testMat;
+
+        Mesh mesh = new Mesh();
+        mesh.name = "Hexagon Mesh";
+        mesh.subMeshCount = 2;
+        UnityEngine.Rendering.SubMeshDescriptor desc = new UnityEngine.Rendering.SubMeshDescriptor();
+        renderer.materials = new Material[2] { testMat, testMat2 };
+
+        mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
+        mesh.SetVertices( verts );
+        mesh.SetIndices( otherIndices, MeshTopology.Triangles, 0 );
+        mesh.SetIndices( topPlane, MeshTopology.Triangles, 1 );
+        mesh.RecalculateNormals();
+        filter.mesh = mesh;
+
+        return verts;
+    }
+
+
     private void GetGridVerts()
     {
         if ( Grid.GridPoints.Length <= 0 ) return;
@@ -147,7 +254,7 @@ public class GridMaster : MonoBehaviour
 
         for ( int i = 0; i < Grid.GridPoints.Length; i++ )
         {
-            Vector3 c = new Vector3( Grid.GridPoints[i].x, 0, Grid.GridPoints[i].z ); // center if tile
+            Vector3 c = new Vector3( Grid.GridPoints[i].x, 0, Grid.GridPoints[i].z ); // center of tile
             float y = _tileThickness;
 
             Vector3 p1 = new Vector3( c.x + r, y, c.z ); // 0
@@ -156,8 +263,9 @@ public class GridMaster : MonoBehaviour
             Vector3 p4 = new Vector3( c.x - r, y, c.z ); // 3
             Vector3 p5 = new Vector3( c.x - r * .5f, y, c.z + w ); // 4
             Vector3 p6 = new Vector3( c.x + r * .5f, y, c.z + w ); // 5
-
+           
             Cell cell = Grid.Cells[i];
+            cell.Verts = GenHexagonMeshInfo( c, new Vector3[6] { p1, p2, p3, p4, p5, p6 } );
             List<Vector3> cverts = new List<Vector3>();
             // vertices
             if ( cell.ColRow.y == 0 ) // ROW 0
@@ -213,7 +321,6 @@ public class GridMaster : MonoBehaviour
             }
 
             verts.AddRange( cverts );
-            cell.Verts = cverts.ToArray();
            
         }
 
@@ -453,6 +560,7 @@ public class GridMaster : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        if ( Grid.GridVerts == null || Grid.GridVerts.Length < 0 ) return;
         for ( int j = 0; j < Grid.GridVerts.Length; j++ )
         {
             Gizmos.color = Color.red;
