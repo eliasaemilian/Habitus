@@ -78,6 +78,8 @@ public class GridMaster : MonoBehaviour
                 c.ColRow = new Vector2( x, y );
                 c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
 
+                c.GetNeighbours( Grid.size );
+
                 if ( Grid.TileTypes[y, x] > 0 )
                 {
                     c.Tile = new Tile();
@@ -165,25 +167,12 @@ public class GridMaster : MonoBehaviour
 
         // indices
         c = 0;
-        // bottom hex plane
-        for ( int i = 1; i < 11; i += 2 )
-        {
-            otherIndices[c] = 0;
-            otherIndices[c + 1] = i + 2;
-            otherIndices[c + 2] = i;
-            c += 3;
-        }
-        otherIndices[c] = 0;
-        otherIndices[c + 1] = 1;
-        otherIndices[c + 2] = 11;
-        c += 3;
-
 
         // sides
-        for ( int i = 0; i < 5; i ++ )
+        for ( int i = 0; i < 5; i++ )
         {
             otherIndices[c] = 15 + ( i * 2 );
-            otherIndices[c + 1] = ( i * 2 ) + 2 ;
+            otherIndices[c + 1] = ( i * 2 ) + 2;
             otherIndices[c + 2] = 15 + ( i * 2 ) + 2;
 
             otherIndices[c + 3] = ( i * 2 ) + 2;
@@ -200,6 +189,21 @@ public class GridMaster : MonoBehaviour
         otherIndices[c + 3] = 15;
         otherIndices[c + 4] = 12;
         otherIndices[c + 5] = 2;
+
+
+        c += 6;
+        // bottom hex plane
+        for ( int i = 1; i < 11; i += 2 )
+        {
+            otherIndices[c] = 0;
+            otherIndices[c + 1] = i + 2;
+            otherIndices[c + 2] = i;
+            c += 3;
+        }
+        otherIndices[c] = 0;
+        otherIndices[c + 1] = 1;
+        otherIndices[c + 2] = 11;
+
 
 
         // top hex plane
@@ -239,6 +243,12 @@ public class GridMaster : MonoBehaviour
         return verts;
     }
 
+    private void CullUnusedHexVerts(Cell c)
+    {
+        // for each neighbour if true then get appropriate triangle
+
+    }
+
 
     private void GetGridVerts()
     {
@@ -266,6 +276,7 @@ public class GridMaster : MonoBehaviour
            
             Cell cell = Grid.Cells[i];
             cell.Verts = GenHexagonMeshInfo( c, new Vector3[6] { p1, p2, p3, p4, p5, p6 } );
+
             List<Vector3> cverts = new List<Vector3>();
             // vertices
             if ( cell.ColRow.y == 0 ) // ROW 0
