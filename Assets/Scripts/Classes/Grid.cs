@@ -7,10 +7,9 @@ using UnityEngine;
 public class Grid
 {
     public int size;
-    //public int rows;
-    //public int columns;
     public Cell center;
     public Cell[] Cells;
+    public Cell[,] Cellss;
 
     public Vector3[] GridPoints;
     public Vector3[] GridVerts;
@@ -42,6 +41,40 @@ public class Grid
         }
 
 
+    }
+
+    public Cell[] GetNeighbourCellsByCell( Cell c )
+    {
+        int size = 0;
+        for ( int i = 0; i < c.IsConnected.Length; i++ )
+        {
+            if ( c.IsConnected[i] ) size++;
+        }
+
+        List<Cell> cells = new List<Cell>();
+
+
+        if ( c.IsConnected[0] ) cells.Add( Cellss[(int)c.ColRow.x, ( int) c.ColRow.y + 1 ] );
+        if ( c.IsConnected[3] ) cells.Add( Cellss[(int)c.ColRow.x, ( int) c.ColRow.y - 1 ] );
+
+        if (c.ColRow.x % 2 != 0) // odd
+        {
+            if ( c.IsConnected[1] ) cells.Add( Cellss[(int)c.ColRow.x + 1, (int) c.ColRow.y + 1 ] );
+            if ( c.IsConnected[2] ) cells.Add( Cellss[(int)c.ColRow.x + 1, (int)c.ColRow.y ] );
+            if ( c.IsConnected[4] ) cells.Add( Cellss[(int)c.ColRow.x - 1, (int)c.ColRow.y ] );
+            if ( c.IsConnected[5] ) cells.Add( Cellss[(int)c.ColRow.x - 1, (int)c.ColRow.y + 1 ] );
+
+        }
+        else
+        {
+            if ( c.IsConnected[1] ) cells.Add( Cellss[ (int) c.ColRow.x + 1 , (int)c.ColRow.y] );
+            if ( c.IsConnected[2] ) cells.Add( Cellss[(int)c.ColRow.x + 1, (int)c.ColRow.y - 1] );
+            if ( c.IsConnected[4] ) cells.Add( Cellss[(int)c.ColRow.x - 1, (int)c.ColRow.y - 1] );
+            if ( c.IsConnected[5] ) cells.Add( Cellss[(int)c.ColRow.x - 1, (int)c.ColRow.y ] );
+
+        }
+
+        return cells.ToArray();
     }
 
 }

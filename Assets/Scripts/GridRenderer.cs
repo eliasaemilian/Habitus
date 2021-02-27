@@ -75,7 +75,7 @@ public class GridRenderer : MonoBehaviour
         if ( cams.ContainsKey( cam ) ) return;
 
         cmd = new CommandBuffer();
-        cmd.name = "Buffer Test";
+        cmd.name = "GridLines";
         Mat_GridLines.SetPass( 0 );
 
         cams[cam] = cmd;

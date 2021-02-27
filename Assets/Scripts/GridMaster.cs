@@ -38,6 +38,10 @@ public class GridMaster : MonoBehaviour
          */
     }
 
+    private void Update()
+    {
+        if ( Input.GetMouseButton( 0 ) ) OnClickNeighbourDebug();
+    }
     private void ClearGrid()
     {
         foreach ( Cell c in Grid.Cells )
@@ -64,22 +68,24 @@ public class GridMaster : MonoBehaviour
         Grid.center.WorldPos = new Vector3( 0, 0, 0 );
 
         Grid.Cells = new Cell[Grid.size * Grid.size];
+        Grid.Cellss = new Cell[Grid.size , Grid.size];
         Grid.GridPoints = new Vector3[Grid.size * Grid.size];
         Grid.TileTypes = tileTypes;
 
         //Grid.InitTileTypes();
 
         int i = 0;
-        for ( int y = 0; y < ( Grid.size ); y++ )
+        for ( int y = 0; y < ( Grid.size ); y++ ) // row
         {
-            for ( int x = 0; x < ( Grid.size ); x++ )
+            for ( int x = 0; x < ( Grid.size ); x++ ) // col
             {
                 Cell c = new Cell();
                 c.ColRow = new Vector2( x, y );
                 c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
+                c.SetNeighbours( Grid.size );
 
-                c.GetNeighbours( Grid.size );
-
+                Debug.Log( $"Neighbours for Col {x}, Row {y}: 0: {c.IsConnected[0]}, 1: {c.IsConnected[1]}," +
+                    $"2: {c.IsConnected[2]}, 3: {c.IsConnected[3]}, 4: {c.IsConnected[4]}, 5: {c.IsConnected[5]}" );
                 if ( Grid.TileTypes[y, x] > 0 )
                 {
                     c.Tile = new Tile();
@@ -89,6 +95,7 @@ public class GridMaster : MonoBehaviour
                 // AddTileToCell( c, TileType.blank );
 
                 Grid.Cells[i] = c;
+                Grid.Cellss[x, y] = c;
                 Grid.GridPoints[i] = c.WorldPos;
 
 
@@ -117,12 +124,13 @@ public class GridMaster : MonoBehaviour
         GameObject readBoundsTile = Instantiate( _tile );
         var bounds = readBoundsTile.GetComponentInChildren<Collider>().bounds;
         DestroyImmediate( readBoundsTile );
-        _tileWidth = 2;
-        _tileHeight = 1.73f;
+        _tileWidth = 2f;
+        _tileHeight = 2f;
+        _tileThickness = .5f;
 
-        _tileWidth = bounds.size.z;
-        _tileHeight = bounds.size.x;
-        _tileThickness = bounds.size.y;
+        //_tileWidth = bounds.size.z;
+        //_tileHeight = bounds.size.x;
+        //_tileThickness = bounds.size.y;
     }
 
 
@@ -139,7 +147,7 @@ public class GridMaster : MonoBehaviour
         return debug;
     }
 
-    private Vector3[] GenHexagonMeshInfo(Vector3 center, Vector3[] oVerts)
+    private Vector3[] GenHexagonMeshInfo(Cell cell, Vector3 center, Vector3[] oVerts)
     {
         // verts
         Vector3[] verts = new Vector3[24 + 2];
@@ -222,7 +230,7 @@ public class GridMaster : MonoBehaviour
 
 
         GameObject debug = new GameObject();
-        debug.name = "test";
+        debug.name = $"Tile Col: {cell.ColRow.x}, Row: {cell.ColRow.y} ";
         MeshRenderer renderer = debug.AddComponent<MeshRenderer>();
         MeshFilter filter = debug.AddComponent<MeshFilter>();
         renderer.material = testMat;
@@ -233,12 +241,18 @@ public class GridMaster : MonoBehaviour
         UnityEngine.Rendering.SubMeshDescriptor desc = new UnityEngine.Rendering.SubMeshDescriptor();
         renderer.materials = new Material[2] { testMat, testMat2 };
 
-        mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
+
+mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
         mesh.SetVertices( verts );
         mesh.SetIndices( otherIndices, MeshTopology.Triangles, 0 );
         mesh.SetIndices( topPlane, MeshTopology.Triangles, 1 );
         mesh.RecalculateNormals();
         filter.mesh = mesh;
+
+        MeshCollider col = debug.AddComponent<MeshCollider>();
+        col.sharedMesh = mesh;
+
+        cell.Tile.RefGO = debug;
 
         return verts;
     }
@@ -257,7 +271,6 @@ public class GridMaster : MonoBehaviour
         // vertices
         List<int> indices = new List<int>();
         List<Vector3> verts = new List<Vector3>();
-        //float r = _tileWidth * .5f;
 
         float r = _tileHeight * .5f;
         float w = _tileWidth * .5f;
@@ -275,7 +288,7 @@ public class GridMaster : MonoBehaviour
             Vector3 p6 = new Vector3( c.x + r * .5f, y, c.z + w ); // 5
            
             Cell cell = Grid.Cells[i];
-            cell.Verts = GenHexagonMeshInfo( c, new Vector3[6] { p1, p2, p3, p4, p5, p6 } );
+            cell.Verts = GenHexagonMeshInfo( cell, c, new Vector3[6] { p1, p2, p3, p4, p5, p6 } );
 
             List<Vector3> cverts = new List<Vector3>();
             // vertices
@@ -286,7 +299,7 @@ public class GridMaster : MonoBehaviour
                     cverts.Add( p1 );
                     cverts.Add( p2 );
                     cverts.Add( p3 );
-                    cverts.Add( p4);
+                    cverts.Add( p4 );
                     cverts.Add( p5 );
                     cverts.Add( p6 );
                 }
@@ -578,6 +591,61 @@ public class GridMaster : MonoBehaviour
             Gizmos.DrawSphere( Grid.GridVerts[j], 0.07f );
 
         }
+    }
+
+    public void OnClickNeighbourDebug()
+    {
+
+        RaycastHit hit = new RaycastHit();
+        Ray ray = Camera.main.ScreenPointToRay( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - _tileThickness ) );
+        if (Physics.Raycast( ray, out hit ))
+        {
+            //  Debug.Log( $"Hit {hit.transform.gameObject.name}" );
+            Vector3 po = hit.point;
+
+            float col, row;
+            if (Grid.size % 2 == 0)
+            {
+                float width = ( Grid.size * .5f ) * _tileWidth + ( Grid.size * .5f ) * ( _tileWidth * .5f );
+
+
+            }
+
+
+
+
+
+            Debug.Log( $"Hit Grid at {po.x}, {po.z} makes COL: {(int)col}, ROW {(int)row}" );
+
+            Grid.Cellss[(int)col, (int)row].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+            // hit.transform.gameObject.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+        }
+
+
+        Vector3 p = Camera.main.ScreenToWorldPoint( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - _tileThickness ) );
+        Debug.Log( "Click at " + p + " with mouse " + Input.mousePosition );
+        if ( 0 <= p.x && p.x < Grid.size * _tileWidth/* && 0 <= p.y && p.y < Grid.size * _tileHeight */)
+        {
+            float col = p.x / _tileWidth;
+            float row = p.y / _tileHeight;
+           // Debug.Log( $"Hit Grid at {p.x}, {p.y} makes COL: {(int)col}, ROW {(int)row}" );
+         //   Grid.Cellss[(int)col, (int)row].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+
+        }
+
+        Plane plane = new Plane(Vector3.up, 0f);
+        float dist;
+        if (plane.Raycast( ray, out dist))
+        {
+            //Debug.Log( $"Click was at {ray.GetPoint( dist )}" );
+            Vector2 point = new Vector2( ray.GetPoint( dist ).x, ray.GetPoint( dist ).z );
+            float col = point.x / _tileWidth;
+            float row = point.y / _tileHeight;
+            //Debug.Log( $"Hit Grid at {p.x}, {p.y} makes COL: {(int)col}, ROW {(int)row}" );
+            //Grid.Cellss[(int)col, (int)row].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+
+        }
+
     }
 
 }
