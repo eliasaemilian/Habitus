@@ -18,6 +18,8 @@ public class Grid
 
     public TileType[,] TileTypes;
 
+    public Dictionary<Vector3, Vector2> CenterColRowDict; // Lookup for Center Vert Position, Col [x] , Row [y]
+
 
     public void InitTileTypes()
     {
@@ -54,23 +56,23 @@ public class Grid
         List<Cell> cells = new List<Cell>();
 
 
-        if ( c.IsConnected[0] ) cells.Add( Cellss[(int)c.ColRow.x, ( int) c.ColRow.y + 1 ] );
-        if ( c.IsConnected[3] ) cells.Add( Cellss[(int)c.ColRow.x, ( int) c.ColRow.y - 1 ] );
+        if ( c.IsConnected[0] ) cells.Add( Cellss[c.ColRow.x, c.ColRow.y + 1 ] );
+        if ( c.IsConnected[3] ) cells.Add( Cellss[c.ColRow.x, c.ColRow.y - 1 ] );
 
         if (c.ColRow.x % 2 != 0) // odd
         {
-            if ( c.IsConnected[1] ) cells.Add( Cellss[(int)c.ColRow.x + 1, (int) c.ColRow.y + 1 ] );
-            if ( c.IsConnected[2] ) cells.Add( Cellss[(int)c.ColRow.x + 1, (int)c.ColRow.y ] );
-            if ( c.IsConnected[4] ) cells.Add( Cellss[(int)c.ColRow.x - 1, (int)c.ColRow.y ] );
-            if ( c.IsConnected[5] ) cells.Add( Cellss[(int)c.ColRow.x - 1, (int)c.ColRow.y + 1 ] );
+            if ( c.IsConnected[1] ) cells.Add( Cellss[c.ColRow.x + 1, c.ColRow.y + 1 ] );
+            if ( c.IsConnected[2] ) cells.Add( Cellss[c.ColRow.x + 1, c.ColRow.y ] );
+            if ( c.IsConnected[4] ) cells.Add( Cellss[c.ColRow.x - 1, c.ColRow.y ] );
+            if ( c.IsConnected[5] ) cells.Add( Cellss[c.ColRow.x - 1, c.ColRow.y + 1 ] );
 
         }
-        else
+        else // even
         {
-            if ( c.IsConnected[1] ) cells.Add( Cellss[ (int) c.ColRow.x + 1 , (int)c.ColRow.y] );
-            if ( c.IsConnected[2] ) cells.Add( Cellss[(int)c.ColRow.x + 1, (int)c.ColRow.y - 1] );
-            if ( c.IsConnected[4] ) cells.Add( Cellss[(int)c.ColRow.x - 1, (int)c.ColRow.y - 1] );
-            if ( c.IsConnected[5] ) cells.Add( Cellss[(int)c.ColRow.x - 1, (int)c.ColRow.y ] );
+            if ( c.IsConnected[1] ) cells.Add( Cellss[ c.ColRow.x + 1 , c.ColRow.y] );
+            if ( c.IsConnected[2] ) cells.Add( Cellss[ c.ColRow.x + 1, c.ColRow.y - 1] );
+            if ( c.IsConnected[4] ) cells.Add( Cellss[ c.ColRow.x - 1, c.ColRow.y - 1] );
+            if ( c.IsConnected[5] ) cells.Add( Cellss[ c.ColRow.x - 1, c.ColRow.y ] );
 
         }
 

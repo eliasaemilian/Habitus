@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Grid:
-    size: 0
+    size: 7
     center:
       ColRow: {x: 0, y: 0}
       WorldPos: {x: 0, y: 0, z: 0}
@@ -315,6 +315,9 @@ MonoBehaviour:
     GridVertsOut: []
     GridIndices: 
   _tile: {fileID: 7124045268657375602, guid: 20339fedcc31887478c0e483c385e85d, type: 3}
+  _tileWidth: 1
+  _tileHeight: 1
+  _tileThickness: 0.5
   testMat: {fileID: 2100000, guid: 71571ade0a0512d429d6c7559a72880a, type: 2}
   testMat2: {fileID: 2100000, guid: afb409e5f4a2a5f4cb3c3696613e7e7b, type: 2}
   TestVerts: []
@@ -878,7 +881,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.44461396, y: -0, z: -0, w: 0.8957223}
-  m_LocalPosition: {x: 5.8, y: 10.9, z: -2.65}
+  m_LocalPosition: {x: 3.21, y: 10.9, z: -3.19}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1238,7 +1241,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1954087317
 MonoBehaviour:
   m_ObjectHideFlags: 0

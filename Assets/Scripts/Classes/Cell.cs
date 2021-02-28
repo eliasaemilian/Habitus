@@ -6,13 +6,13 @@ using System;
 [Serializable]
 public class Cell
 {
-    public Vector2 ColRow;
+    public Vector2Int ColRow;
     public Vector3 WorldPos;
     public bool ElevatedOnZ;
     public Vector3[] Verts;
 
     public Tile Tile;
-    public Vector2[] Neighbours;
+    public Vector2Int[] Neighbours;
     public bool[] IsConnected;
 
     public void SetNeighbours(int gridsize)
@@ -60,16 +60,18 @@ public class Cell
         }
         else
         {
-            if ( ColRow.y != 0 )
+            if ( ColRow.y != 0 && ColRow.y != gridsize - 1 )
             {
                 // 3 , 2 , 1, 0
                 IsConnected[0] = true;
                 IsConnected[1] = true;
                 IsConnected[2] = true;
                 IsConnected[3] = true;
+                IsConnected[4] = true;
+                IsConnected[5] = true;
 
             }
-            else if (ColRow.y != gridsize - 1)
+            else if ( ColRow.y == 0 )
             {
                 // 0 , 1 , 5
                 IsConnected[0] = true;
@@ -83,7 +85,19 @@ public class Cell
                     IsConnected[4] = true;
                 }
 
+            }
+            else if ( ColRow.y == gridsize - 1)
+            {
 
+                IsConnected[3] = true;
+                IsConnected[2] = true;
+                IsConnected[4] = true;
+
+                if ( ColRow.x % 2 == 0 ) // even
+                {
+                    IsConnected[1] = true;
+                    IsConnected[5] = true;
+                }
             }
         }
     }

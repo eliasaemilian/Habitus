@@ -10,13 +10,16 @@ public class GridMaster : MonoBehaviour
 
     [SerializeField] private GameObject _tile = null;
 
-    private float _tileWidth;
-    private float _tileHeight;
-    private float _tileThickness;
+    [SerializeField] private float _tileWidth;
+    [SerializeField] private float _tileHeight;
+    [SerializeField] private float _tileThickness;
 
     public Material testMat, testMat2;
     public List<Vector3> TestVerts;
     public List<int> TestIndices;
+
+    float r; float w;
+
 
 
     void Awake()
@@ -40,22 +43,21 @@ public class GridMaster : MonoBehaviour
 
     private void Update()
     {
-        if ( Input.GetMouseButton( 0 ) ) OnClickNeighbourDebug();
+        if ( Input.GetMouseButtonUp( 0 ) ) OnClickNeighbourDebug();
     }
     private void ClearGrid()
     {
         foreach ( Cell c in Grid.Cells )
         {
-            if ( c.Tile.RefGO != null ) DestroyImmediate( c.Tile.RefGO ); 
+            if ( c.Tile.RefGO != null ) DestroyImmediate( c.Tile.RefGO );
         }
     }
 
     public void OnClickClearGrid() => ClearGrid();
 
-    public void InitGrid(int size, TileType[,] tileTypes)
+    public void InitGrid( int size, TileType[,] tileTypes )
     {
         ClearGrid();
-        SetCellSize();
 
 
 
@@ -64,13 +66,15 @@ public class GridMaster : MonoBehaviour
 
 
         Grid.center = new Cell();
-        Grid.center.ColRow = new Vector2( 0, 0 );
+        Grid.center.ColRow = new Vector2Int( 0, 0 );
         Grid.center.WorldPos = new Vector3( 0, 0, 0 );
 
         Grid.Cells = new Cell[Grid.size * Grid.size];
-        Grid.Cellss = new Cell[Grid.size , Grid.size];
+        Grid.Cellss = new Cell[Grid.size, Grid.size];
         Grid.GridPoints = new Vector3[Grid.size * Grid.size];
         Grid.TileTypes = tileTypes;
+
+        Grid.CenterColRowDict = new Dictionary<Vector3, Vector2>();
 
         //Grid.InitTileTypes();
 
@@ -80,16 +84,15 @@ public class GridMaster : MonoBehaviour
             for ( int x = 0; x < ( Grid.size ); x++ ) // col
             {
                 Cell c = new Cell();
-                c.ColRow = new Vector2( x, y );
+                c.ColRow = new Vector2Int( x, y );
                 c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
                 c.SetNeighbours( Grid.size );
 
-                Debug.Log( $"Neighbours for Col {x}, Row {y}: 0: {c.IsConnected[0]}, 1: {c.IsConnected[1]}," +
-                    $"2: {c.IsConnected[2]}, 3: {c.IsConnected[3]}, 4: {c.IsConnected[4]}, 5: {c.IsConnected[5]}" );
+
                 if ( Grid.TileTypes[y, x] > 0 )
                 {
                     c.Tile = new Tile();
-                 //   c.Tile.RefGO = AddTileToCell( c, Grid.TileTypes[y, x] );
+                    //   c.Tile.RefGO = AddTileToCell( c, Grid.TileTypes[y, x] );
                 }
 
                 // AddTileToCell( c, TileType.blank );
@@ -98,7 +101,7 @@ public class GridMaster : MonoBehaviour
                 Grid.Cellss[x, y] = c;
                 Grid.GridPoints[i] = c.WorldPos;
 
-
+                Grid.CenterColRowDict.Add( c.WorldPos, c.ColRow );
                 i++;
             }
         }
@@ -110,7 +113,7 @@ public class GridMaster : MonoBehaviour
     {
         float s = 0;
 
-        if ( gridPos.x % 2 != 0 ) s = 1; 
+        if ( gridPos.x % 2 != 0 ) s = 1;
 
         float x = Grid.center.WorldPos.x + gridPos.x * ( ( _tileHeight / 2 ) + ( _tileHeight / 4 ) );
         float z = Grid.center.WorldPos.z + ( s + gridPos.y * 2 ) * ( _tileWidth / 2 );
@@ -119,19 +122,6 @@ public class GridMaster : MonoBehaviour
         return new Vector3( x, 0, z );
     }
 
-    void SetCellSize()
-    {
-        GameObject readBoundsTile = Instantiate( _tile );
-        var bounds = readBoundsTile.GetComponentInChildren<Collider>().bounds;
-        DestroyImmediate( readBoundsTile );
-        _tileWidth = 2f;
-        _tileHeight = 2f;
-        _tileThickness = .5f;
-
-        //_tileWidth = bounds.size.z;
-        //_tileHeight = bounds.size.x;
-        //_tileThickness = bounds.size.y;
-    }
 
 
     private GameObject AddTileToCell( Cell c, TileType type )
@@ -147,7 +137,7 @@ public class GridMaster : MonoBehaviour
         return debug;
     }
 
-    private Vector3[] GenHexagonMeshInfo(Cell cell, Vector3 center, Vector3[] oVerts)
+    private Vector3[] GenHexagonMeshInfo( Cell cell, Vector3 center, Vector3[] oVerts )
     {
         // verts
         Vector3[] verts = new Vector3[24 + 2];
@@ -242,7 +232,7 @@ public class GridMaster : MonoBehaviour
         renderer.materials = new Material[2] { testMat, testMat2 };
 
 
-mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
+        mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
         mesh.SetVertices( verts );
         mesh.SetIndices( otherIndices, MeshTopology.Triangles, 0 );
         mesh.SetIndices( topPlane, MeshTopology.Triangles, 1 );
@@ -257,7 +247,7 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
         return verts;
     }
 
-    private void CullUnusedHexVerts(Cell c)
+    private void CullUnusedHexVerts( Cell c )
     {
         // for each neighbour if true then get appropriate triangle
 
@@ -272,8 +262,8 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
         List<int> indices = new List<int>();
         List<Vector3> verts = new List<Vector3>();
 
-        float r = _tileHeight * .5f;
-        float w = _tileWidth * .5f;
+        r = _tileHeight * .5f;
+        w = _tileWidth * .5f;
 
         for ( int i = 0; i < Grid.GridPoints.Length; i++ )
         {
@@ -286,7 +276,7 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
             Vector3 p4 = new Vector3( c.x - r, y, c.z ); // 3
             Vector3 p5 = new Vector3( c.x - r * .5f, y, c.z + w ); // 4
             Vector3 p6 = new Vector3( c.x + r * .5f, y, c.z + w ); // 5
-           
+
             Cell cell = Grid.Cells[i];
             cell.Verts = GenHexagonMeshInfo( cell, c, new Vector3[6] { p1, p2, p3, p4, p5, p6 } );
 
@@ -294,7 +284,7 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
             // vertices
             if ( cell.ColRow.y == 0 ) // ROW 0
             {
-                if (cell.ColRow.x == 0)
+                if ( cell.ColRow.x == 0 )
                 {
                     cverts.Add( p1 );
                     cverts.Add( p2 );
@@ -337,7 +327,7 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
                     {
                         if ( cell.ColRow.x == Grid.size - 1 ) cverts.Add( p1 ); //repl. col
                     }
-                  
+
                 }
 
                 cverts.Add( p6 );
@@ -345,7 +335,7 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
             }
 
             verts.AddRange( cverts );
-           
+
         }
 
         for ( int i = 0; i < Grid.GridPoints.Length; i++ )
@@ -433,29 +423,29 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
                 {
 
                     int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
-                    if (odd == 0) row = 3 + ( 3 * ( half ) ) + ( half - 1 );
+                    if ( odd == 0 ) row = 3 + ( 3 * ( half ) ) + ( half - 1 );
 
-                    int current = row0 + ( ((int)cell.ColRow.y - 1 ) * row ); // first index newly added in this row
+                    int current = row0 + ( ( (int)cell.ColRow.y - 1 ) * row ); // first index newly added in this row
 
 
                     int pastRow = 6 + ( ( (int)cell.ColRow.x ) * 4 ) - 1;
                     if ( cell.ColRow.y == 1 ) pastRow = 0;
 
-                    if (cell.ColRow.y > 1 ) pastRow = row0 + ( ( ( (int)cell.ColRow.y - 2 ) * row ) );
+                    if ( cell.ColRow.y > 1 ) pastRow = row0 + ( ( ( (int)cell.ColRow.y - 2 ) * row ) );
 
-                    if (cell.ColRow.y != 1)
+                    if ( cell.ColRow.y != 1 )
                     {
                         indices.Add( pastRow + 1 );
                         indices.Add( current );
 
                         indices.Add( current );
-                        indices.Add( current + 1);
+                        indices.Add( current + 1 );
 
-                        indices.Add( current + 1);
-                        indices.Add( current + 2);
+                        indices.Add( current + 1 );
+                        indices.Add( current + 2 );
 
-                        indices.Add( current + 2);
-                        indices.Add( pastRow + 4);
+                        indices.Add( current + 2 );
+                        indices.Add( pastRow + 4 );
                     }
                     else
                     {
@@ -479,12 +469,12 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
                 else if ( cell.ColRow.x % 2 != 0 ) // ODDS 
                 {
 
-                    int curHalf = ( (int)cell.ColRow.x - 1  ) / 2;
-                    
+                    int curHalf = ( (int)cell.ColRow.x - 1 ) / 2;
+
                     if ( curHalf < 0 ) curHalf = 0;
 
-                    int thisRowAdded = 3 + ( 3 * curHalf) + ( curHalf ); 
-                    if (cell.ColRow.x > 1) thisRowAdded = ( 3 * curHalf ) + ( curHalf + 1)  + 1; // 0 counts as even, add +1 since its 3 not 2 verts added
+                    int thisRowAdded = 3 + ( 3 * curHalf ) + ( curHalf );
+                    if ( cell.ColRow.x > 1 ) thisRowAdded = ( 3 * curHalf ) + ( curHalf + 1 ) + 1; // 0 counts as even, add +1 since its 3 not 2 verts added
 
 
                     int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
@@ -493,8 +483,8 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
                     int current = row0 + ( ( (int)cell.ColRow.y - 1 ) * row ) + thisRowAdded; // first index newly added in this row + everything added to this row - > + 1 this is where we are now
                     if ( cell.ColRow.x > 1 ) current += 1;
 
-                    int pastRow = 6 + ( 4 * ( (int)cell.ColRow.x - 1 ) ); 
-                    if ( cell.ColRow.y > 1) pastRow = (   Mathf.Clamp(( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y) * ( row ) ) + thisRowAdded + row0;
+                    int pastRow = 6 + ( 4 * ( (int)cell.ColRow.x - 1 ) );
+                    if ( cell.ColRow.y > 1 ) pastRow = ( Mathf.Clamp( ( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y ) * ( row ) ) + thisRowAdded + row0;
                     if ( cell.ColRow.x > 1 ) pastRow += 1;
 
                     if ( cell.ColRow.x == 1 && cell.ColRow.y == 1 )
@@ -523,8 +513,8 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
                 {
 
                     int curHalf = ( (int)cell.ColRow.x ) / 2;
-                    
-                    int thisRowAdded = 3 + ( 3 *  curHalf ) + ( curHalf - 1) ;
+
+                    int thisRowAdded = 3 + ( 3 * curHalf ) + ( curHalf - 1 );
 
 
 
@@ -537,12 +527,12 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
                     if ( cell.ColRow.y > 1 ) pastRow = ( Mathf.Clamp( ( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y ) * ( row ) ) + thisRowAdded + row0;
 
 
-                    if (cell.ColRow.x == Grid.size - 1) // repl. col
+                    if ( cell.ColRow.x == Grid.size - 1 ) // repl. col
                     {
                         indices.Add( current - 3 );
                         indices.Add( current + 1 );
 
-                        indices.Add( current + 1);
+                        indices.Add( current + 1 );
                         indices.Add( current );
 
                         indices.Add( current );
@@ -564,14 +554,14 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
 
             }
         }
-           
+
 
 
         Grid.GridIndices = indices.ToArray();
         Grid.GridVerts = verts.ToArray();
         Grid.GridVertsOut = new Vector3[Grid.GridIndices.Length];
 
-        for ( int j = 0; j < Grid.GridIndices.Length; j ++ )
+        for ( int j = 0; j < Grid.GridIndices.Length; j++ )
         {
             if ( Grid.GridIndices[j] < Grid.GridVerts.Length && Grid.GridIndices[j] >= 0 )
                 Grid.GridVertsOut[j] = Grid.GridVerts[Grid.GridIndices[j]];
@@ -595,57 +585,75 @@ mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
 
     public void OnClickNeighbourDebug()
     {
+        if ( GetCellByMouseCLick( out Vector2Int hex ) )
+        {
+            CleanAllTilesDebug();
 
-        RaycastHit hit = new RaycastHit();
+            Grid.Cellss[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+            Grid.Cellss[hex.x, hex.y].SetNeighbours(Grid.size);
+            Cell[] neighbours = Grid.GetNeighbourCellsByCell( Grid.Cellss[hex.x, hex.y] );
+
+            for ( int i = 0; i < neighbours.Length; i++ )
+            {
+                Debug.Log( i );
+                neighbours[i].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.blue;
+            }
+        }
+
+
+    }
+
+    public void CleanAllTilesDebug()
+    {
+        for ( int i = 0; i < Grid.Cells.Length; i++ )
+        {
+            Grid.Cells[i].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.white;
+        }
+    }
+
+    public bool GetCellByMouseCLick(out Vector2Int hex)
+    {
+        RaycastHit hit;
+        hex = new Vector2Int();
         Ray ray = Camera.main.ScreenPointToRay( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - _tileThickness ) );
-        if (Physics.Raycast( ray, out hit ))
+        if ( Physics.Raycast( ray, out hit ) )
         {
             //  Debug.Log( $"Hit {hit.transform.gameObject.name}" );
             Vector3 po = hit.point;
 
-            float col, row;
-            if (Grid.size % 2 == 0)
-            {
-                float width = ( Grid.size * .5f ) * _tileWidth + ( Grid.size * .5f ) * ( _tileWidth * .5f );
+            float col; float row;
+
+            float unit = _tileWidth + ( _tileWidth * .5f );
+            col = po.x / unit;
+            col *= 2;
+
+            // row
+            float heightU = _tileHeight;
+            row = po.z / heightU;
+
+            int tC = Mathf.RoundToInt( col );
+            int tR = Mathf.RoundToInt( row );
 
 
-            }
+            Vector2 pos = new Vector2( po.x, po.z );
 
-
-
-
-
-            Debug.Log( $"Hit Grid at {po.x}, {po.z} makes COL: {(int)col}, ROW {(int)row}" );
-
-            Grid.Cellss[(int)col, (int)row].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
-            // hit.transform.gameObject.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+            // Search for the nearest hexagon
+            float minimum = 2 * _tileWidth;  // I'm just taking a value big enough
+            for ( int x = tC - 1; x <= tC + 1; ++x )
+                for ( int y = tR - 1; y <= tR + 1; ++y )
+                {
+                    if ( x < 0 || x >= Grid.size || y < 0 || y >= Grid.size ) continue;
+                    float dist = Vector2.Distance( new Vector2( Grid.Cellss[x, y].WorldPos.x, Grid.Cellss[x, y].WorldPos.z ), pos );
+                    if ( dist < minimum )
+                    {
+                        minimum = dist;
+                        hex.x = x;
+                        hex.y = y;
+                    }
+                }
+            return true;
         }
-
-
-        Vector3 p = Camera.main.ScreenToWorldPoint( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - _tileThickness ) );
-        Debug.Log( "Click at " + p + " with mouse " + Input.mousePosition );
-        if ( 0 <= p.x && p.x < Grid.size * _tileWidth/* && 0 <= p.y && p.y < Grid.size * _tileHeight */)
-        {
-            float col = p.x / _tileWidth;
-            float row = p.y / _tileHeight;
-           // Debug.Log( $"Hit Grid at {p.x}, {p.y} makes COL: {(int)col}, ROW {(int)row}" );
-         //   Grid.Cellss[(int)col, (int)row].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
-
-        }
-
-        Plane plane = new Plane(Vector3.up, 0f);
-        float dist;
-        if (plane.Raycast( ray, out dist))
-        {
-            //Debug.Log( $"Click was at {ray.GetPoint( dist )}" );
-            Vector2 point = new Vector2( ray.GetPoint( dist ).x, ray.GetPoint( dist ).z );
-            float col = point.x / _tileWidth;
-            float row = point.y / _tileHeight;
-            //Debug.Log( $"Hit Grid at {p.x}, {p.y} makes COL: {(int)col}, ROW {(int)row}" );
-            //Grid.Cellss[(int)col, (int)row].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
-
-        }
-
+        return false;
     }
 
 }
