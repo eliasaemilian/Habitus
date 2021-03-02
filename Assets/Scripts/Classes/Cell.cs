@@ -15,6 +15,10 @@ public class Cell
     public Vector2Int[] Neighbours;
     public bool[] IsConnected;
 
+    // HEX
+    public Vector3[] HVerts;
+    public int[] HIndicesSides;
+
     public void SetNeighbours(int gridsize)
     {
       //  List<Vector2> n = new List<Vector2>();
@@ -102,17 +106,18 @@ public class Cell
         }
     }
 
-    public Vector3[] GetActiveVerts()
+    public Vector3[] GetVertsByNeighbours()
     {
-        // put something smart here that explains neighbour -> vertices relationship for future self
-
-        // get neighbours
-
-        // depending on neighbours return correct Triangles
-
-        return new Vector3[0];
+        List<Vector3> verts = new List<Vector3>();        
+        if ( !IsConnected[2] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[0]], HVerts[HIndicesSides[1]], HVerts[HIndicesSides[2]], HVerts[HIndicesSides[3]], HVerts[HIndicesSides[4]], HVerts[HIndicesSides[5]] } );
+        if ( !IsConnected[3] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[6]], HVerts[HIndicesSides[7]], HVerts[HIndicesSides[8]], HVerts[HIndicesSides[9]], HVerts[HIndicesSides[10]], HVerts[HIndicesSides[11]] } );
+        if ( !IsConnected[4] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[12]], HVerts[HIndicesSides[13]], HVerts[HIndicesSides[14]], HVerts[HIndicesSides[15]], HVerts[HIndicesSides[16]], HVerts[HIndicesSides[17]] } );
+        if ( !IsConnected[5] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[18]], HVerts[HIndicesSides[19]], HVerts[HIndicesSides[20]], HVerts[HIndicesSides[21]], HVerts[HIndicesSides[22]], HVerts[HIndicesSides[23]] } );
+        if ( !IsConnected[0] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[24]], HVerts[HIndicesSides[25]], HVerts[HIndicesSides[26]], HVerts[HIndicesSides[27]], HVerts[HIndicesSides[28]], HVerts[HIndicesSides[29]] } );
+        if ( !IsConnected[1] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[30]], HVerts[HIndicesSides[31]], HVerts[HIndicesSides[32]], HVerts[HIndicesSides[33]], HVerts[HIndicesSides[34]], HVerts[HIndicesSides[35]] } );
+        return verts.ToArray();
     }
-    
+
 }
 
 
