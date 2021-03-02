@@ -267,6 +267,7 @@ GameObject:
   - component: {fileID: 510568828}
   - component: {fileID: 510568829}
   - component: {fileID: 510568830}
+  - component: {fileID: 510568831}
   m_Layer: 0
   m_Name: Grid
   m_TagString: Untagged
@@ -309,11 +310,18 @@ MonoBehaviour:
       Verts: []
       Neighbours: []
       IsConnected: 
-    Cells: []
-    GridPoints: []
+      HVerts: []
+      HIndicesTop: 
+      HIndicesSides: 
     GridVerts: []
     GridVertsOut: []
     GridIndices: 
+    CenterPoints: []
+    CellsQueued: []
+    VerticesSides: []
+    VerticesTop: []
+    TopPlaneIndices: 
+    SidesIndices: 
   _tile: {fileID: 7124045268657375602, guid: 20339fedcc31887478c0e483c385e85d, type: 3}
   _tileWidth: 1
   _tileHeight: 1
@@ -322,6 +330,7 @@ MonoBehaviour:
   testMat2: {fileID: 2100000, guid: afb409e5f4a2a5f4cb3c3696613e7e7b, type: 2}
   TestVerts: []
   TestIndices: 
+  debugContainer: {fileID: 927864697}
 --- !u!114 &510568829
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -335,6 +344,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Mat_GridLines: {fileID: 2100000, guid: f152a44e5c91f9a478ef7120dda9458a, type: 2}
+  Mat_GridTop: {fileID: 2100000, guid: 9828dadc358b0f040b85e6f157730601, type: 2}
+  Mat_GridSides: {fileID: 2100000, guid: 3f4f90b0bbfcb204faab26f41e3fe87f, type: 2}
   gridOff: 0
 --- !u!23 &510568830
 MeshRenderer:
@@ -377,6 +388,14 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &510568831
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510568826}
+  m_Mesh: {fileID: 0}
 --- !u!1 &673720166
 GameObject:
   m_ObjectHideFlags: 0
@@ -803,6 +822,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 871419223}
   m_CullTransparentMesh: 0
+--- !u!1 &927864696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 927864697}
+  m_Layer: 0
+  m_Name: DebugTiles
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &927864697
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 927864696}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0

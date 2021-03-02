@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MAT_Sh_GridLines
-  m_Shader: {fileID: 4800000, guid: be34b075e5eeaf04c9397c3b303e7a97, type: 3}
+  m_Name: GridDebugSides
+  m_Shader: {fileID: 4800000, guid: 75dbc6cf7ec7ba748a1b1b832e890fcb, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -25,5 +25,5 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats: []
     m_Colors:
-    - _Albedo: {r: 0.5566038, g: 0.5566038, b: 0.5566038, a: 1}
+    - _Albedo: {r: 1, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

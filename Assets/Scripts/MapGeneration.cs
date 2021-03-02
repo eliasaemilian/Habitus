@@ -12,7 +12,7 @@ public class MapGeneration : MonoBehaviour
 
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         // read Map Config
 
@@ -23,6 +23,7 @@ public class MapGeneration : MonoBehaviour
 
         // pass to Grid
         GridMaster.Instance.InitGrid( MapConfig.GridSize, tileTypes );
+
     }
 
     private void ComputeMountains()
@@ -51,6 +52,6 @@ public class MapGeneration : MonoBehaviour
 
     }
 
-    public void OnClickGenerateMap() => Start();
+    public void OnClickGenerateMap() => Awake();
 
 }

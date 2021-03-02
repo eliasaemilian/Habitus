@@ -1,9 +1,9 @@
-﻿Shader "Unlit/Sh_GridLines"
+﻿Shader "Unlit/Sh_GridDebug"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _Albedo ("Albedo", Color) = (0,0,0,0)
+        _Albedo ("Albedo", Color) = (1,1,1,1)
     }
     SubShader
     {

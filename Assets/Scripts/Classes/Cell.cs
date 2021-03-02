@@ -17,6 +17,7 @@ public class Cell
 
     // HEX
     public Vector3[] HVerts;
+    public int[] HIndicesTop;
     public int[] HIndicesSides;
 
     public void SetNeighbours(int gridsize)
@@ -106,7 +107,7 @@ public class Cell
         }
     }
 
-    public Vector3[] GetVertsByNeighbours()
+    public Vector3[] GetVertsByNeighbours() //SIDES
     {
         List<Vector3> verts = new List<Vector3>();        
         if ( !IsConnected[2] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[0]], HVerts[HIndicesSides[1]], HVerts[HIndicesSides[2]], HVerts[HIndicesSides[3]], HVerts[HIndicesSides[4]], HVerts[HIndicesSides[5]] } );
@@ -115,6 +116,23 @@ public class Cell
         if ( !IsConnected[5] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[18]], HVerts[HIndicesSides[19]], HVerts[HIndicesSides[20]], HVerts[HIndicesSides[21]], HVerts[HIndicesSides[22]], HVerts[HIndicesSides[23]] } );
         if ( !IsConnected[0] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[24]], HVerts[HIndicesSides[25]], HVerts[HIndicesSides[26]], HVerts[HIndicesSides[27]], HVerts[HIndicesSides[28]], HVerts[HIndicesSides[29]] } );
         if ( !IsConnected[1] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[30]], HVerts[HIndicesSides[31]], HVerts[HIndicesSides[32]], HVerts[HIndicesSides[33]], HVerts[HIndicesSides[34]], HVerts[HIndicesSides[35]] } );
+        return verts.ToArray();
+    }
+
+    public Vector3[] GetTopVerts()
+    {
+        List<Vector3> verts = new List<Vector3>();
+        for ( int i = 0; i < HIndicesTop.Length; i++ )
+        {
+            verts.Add( HVerts[HIndicesTop[i]] );
+        }
+        //if ( !IsConnected[2] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[0]], HVerts[HIndicesTop[1]], HVerts[HIndicesTop[2]] } );
+        //if ( !IsConnected[3] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[3]], HVerts[HIndicesTop[4]], HVerts[HIndicesTop[5]] } );
+        //if ( !IsConnected[4] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[6]], HVerts[HIndicesTop[7]], HVerts[HIndicesTop[8]] } );
+        //if ( !IsConnected[5] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[9]], HVerts[HIndicesTop[10]], HVerts[HIndicesTop[11]] } );
+        //if ( !IsConnected[0] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[12]], HVerts[HIndicesTop[13]], HVerts[HIndicesTop[14]] } );
+        //if ( !IsConnected[1] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[15]], HVerts[HIndicesTop[16]], HVerts[HIndicesTop[17]] } );
+
         return verts.ToArray();
     }
 
