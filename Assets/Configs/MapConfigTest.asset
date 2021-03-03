@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70d1f9530ef158a49a9df7ce014feaa3, type: 3}
   m_Name: MapConfigTest
   m_EditorClassIdentifier: 
-  GridSize: 10
-  TileHeight: 1
-  TileWidth: 1
+  GridSize: 4
+  TileHeight: 10
+  TileWidth: 10
   TileThickness: 0.5
-  Mountyness: 0.16
+  Mountyness: 1

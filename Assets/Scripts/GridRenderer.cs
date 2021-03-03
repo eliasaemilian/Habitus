@@ -11,6 +11,14 @@ public struct GridVertex
     public int terrainType; // = TerrainType
 }
 
+[Serializable]
+public struct Hexagon
+{
+    public Vector3 center;
+    public float width;
+    public float height;
+};
+
 [RequireComponent (typeof(MeshRenderer))] 
 public class GridRenderer : MonoBehaviour
 {

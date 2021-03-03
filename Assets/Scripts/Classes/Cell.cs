@@ -16,6 +16,8 @@ public class Cell
     public bool[] IsConnected;
 
     // HEX
+    public Vector3 Center;
+
     public Vector3[] HVerts;
     public int[] HIndicesTop;
     public int[] HIndicesSides;

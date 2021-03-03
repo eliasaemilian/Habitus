@@ -147,6 +147,10 @@ public class GridMaster : MonoBehaviour
         Vector3 cBot = center; // index 0
         verts[0] = cBot;
         verts[13] = cTop;
+
+        cell.Center = cTop;
+
+
         for ( int i = 0; i < oVerts.Length; i++ )
         {
             verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
@@ -243,6 +247,8 @@ public class GridMaster : MonoBehaviour
         {
             for ( int j = 0; j < Grid.Cells.GetLength( 1 ); j++ )
             {
+                Grid.Cells[i, j]
+
                 Vector3[] verts = Grid.Cells[i, j].GetTopVerts();
                 for ( int k = 0; k < verts.Length; k++ )
                 {
@@ -252,11 +258,7 @@ public class GridMaster : MonoBehaviour
                     Grid.TestTerrainGreen.GridVertices.Add( vert );
                 }
 
-                //if ( Grid.Cells[i, j].Tile.Type == TileType.blank ) Grid.TestTerrainGreen.GridVertices.AddRange(  );
-                //else
-                //{
-                //    Grid.TestTerrainMountain.Vertices.AddRange( Grid.Cells[i, j].GetTopVerts() );
-                //}
+
             }
         }
     }

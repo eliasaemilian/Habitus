@@ -28,7 +28,7 @@ public class Grid
 
     // TERRAIN
     public TerrainRenderer TestTerrainGreen;
- //   public TerrainRenderer TestTerrainMountain;
+    public List<Hexagon> Hexagons;
 
     public void InitTileTypes()
     {

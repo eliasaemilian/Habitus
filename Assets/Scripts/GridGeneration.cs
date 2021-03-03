@@ -118,6 +118,8 @@ public static class GridGeneration
         Vector3 cBot = center; // index 0
         verts[0] = cBot;
         verts[13] = cTop;
+
+
         for ( int i = 0; i < oVerts.Length; i++ )
         {
             verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
