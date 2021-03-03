@@ -29,30 +29,35 @@ public class GridRenderer : MonoBehaviour
 
     void Start()
     {
-        grid = GetComponent<GridMaster>().Grid;
-
         if ( FindObjectOfType<CameraController>() != null ) CameraController.CameraUpdate.AddListener( RefreshGridLines );
 
         // Toggle Grid
         if ( FindObjectOfType<InterfaceListener>() != null) InterfaceListener.ToggleGrid.AddListener( OnToggleGrid );
 
+        Init();
+    }
 
-        //
+    public void Init()
+    {
+        grid = GetComponent<GridMaster>().Grid;
+
         InitGridLinesBuffer();
         InitGridSidesBuffer();
-        InitGridTopPlaneBuffer();
+    }
 
-
+    public void DebugReset()
+    {
+        OnDisable();
     }
 
     private void InitGridLinesBuffer()
     {
         
-        indicesTotal = grid.GridVertsOut.Length;
+        if ( grid.GridVertsOut != null ) indicesTotal = grid.GridVertsOut.Length;
 
         if ( indicesTotal <= 0 ) return;
 
-
+        if ( gridVertBuffer != null ) gridVertBuffer.Dispose();
         gridVertBuffer = new ComputeBuffer( indicesTotal, sizeof( float ) * 3, ComputeBufferType.Default );
         gridVertBuffer.SetData( grid.GridVertsOut );
 
@@ -66,24 +71,14 @@ public class GridRenderer : MonoBehaviour
 
         if ( indicesSides <= 0 ) return;
 
+        if ( sidesBuffer != null ) sidesBuffer.Dispose();
         sidesBuffer = new ComputeBuffer( indicesSides, sizeof( float ) * 3, ComputeBufferType.Default );
         sidesBuffer.SetData( grid.VerticesSides );
 
         Mat_GridSides.SetBuffer( "VertBuffer", sidesBuffer );
     }
 
-    private void InitGridTopPlaneBuffer()
-    {
-        Grid grid = GetComponent<GridMaster>().Grid;
-        indicesTop = grid.VerticesTop.Length;
 
-        if ( indicesTop <= 0 ) return;
-
-        topBuffer = new ComputeBuffer( indicesTop, sizeof( float ) * 3, ComputeBufferType.Default );
-        topBuffer.SetData( grid.VerticesTop );
-
-        Mat_GridTop.SetBuffer( "VertBuffer", topBuffer );
-    }
 
 
     private void OnDisable()
@@ -152,15 +147,19 @@ public class GridRenderer : MonoBehaviour
     {
         if ( camsRaster.ContainsKey( cam ) ) return;
 
-
+        // Init Cmd Buffer
         CommandBuffer cmdMesh = new CommandBuffer();
         cmdMesh.name = "Grid Mesh";
-
         camsMesh[cam] = cmdMesh;
 
+        // Draw Terrain
         DrawTerrainMesh( grid.TestTerrainGreen, cmdMesh );
         DrawTerrainMesh( grid.TestTerrainMountain, cmdMesh );
 
+        // Draw Border
+        // ---
+
+        // Add Cmd Buffer
         cam.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, cmdMesh );
     }
 

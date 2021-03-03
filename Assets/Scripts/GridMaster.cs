@@ -8,8 +8,6 @@ public class GridMaster : MonoBehaviour
 
     public Grid Grid;
 
-    [SerializeField] private GameObject _tile = null;
-
     [SerializeField] private float _tileWidth;
     [SerializeField] private float _tileHeight;
     [SerializeField] private float _tileThickness;
@@ -116,6 +114,13 @@ public class GridMaster : MonoBehaviour
 
         GetGridVerts();
         GenerateGridMeshes();
+        InitRenderGrid();
+            
+    }
+
+    private void InitRenderGrid()
+    {
+        GetComponent<GridRenderer>().Init();
     }
 
     private Vector3 GetWorldPos( Vector2 gridPos, out bool elevatedOnZ )
@@ -213,31 +218,7 @@ public class GridMaster : MonoBehaviour
         topPlane[c + 1] = 14;
         topPlane[c + 2] = 13;
 
-
-
-        GameObject debug = new GameObject();
-        debug.name = $"Tile Col: {cell.ColRow.x}, Row: {cell.ColRow.y} ";
-        debug.transform.SetParent( debugContainer );
-        MeshRenderer renderer = debug.AddComponent<MeshRenderer>();
-        MeshFilter filter = debug.AddComponent<MeshFilter>();
-        renderer.material = testMat;
-
-        Mesh mesh = new Mesh();
-        mesh.name = "Hexagon Mesh";
-        mesh.subMeshCount = 2;
-        UnityEngine.Rendering.SubMeshDescriptor desc = new UnityEngine.Rendering.SubMeshDescriptor();
-        renderer.materials = new Material[2] { testMat, testMat2 };
-
-
-        mesh.SetSubMesh( 1, desc, UnityEngine.Rendering.MeshUpdateFlags.Default );
-        mesh.SetVertices( verts );
-        mesh.SetIndices( otherIndices, MeshTopology.Triangles, 0 );
-        mesh.SetIndices( topPlane, MeshTopology.Triangles, 1 );
-        mesh.RecalculateNormals();
-        filter.mesh = mesh;
-
-
-        cell.Tile.RefGO = debug;
+        
         cell.HVerts = verts;
         cell.HIndicesTop = topPlane;
         cell.HIndicesSides = otherIndices;
@@ -258,7 +239,7 @@ public class GridMaster : MonoBehaviour
         return verts.ToArray();
     }
 
-    private Vector3[] GetGridTopVerts()
+    private void GenTerrainPlane()
     {
         List<Vector3> verts = new List<Vector3>();
         for ( int i = 0; i < Grid.Cells.GetLength( 0 ); i++ )
@@ -270,10 +251,8 @@ public class GridMaster : MonoBehaviour
                 {
                     Grid.TestTerrainMountain.Vertices.AddRange( Grid.Cells[i, j].GetTopVerts() );
                 }
-                verts.AddRange( Grid.Cells[i, j].GetTopVerts() );
             }
         }
-        return verts.ToArray();
     }
 
     private void GenerateGridMeshes() 
@@ -284,13 +263,12 @@ public class GridMaster : MonoBehaviour
         Grid.TestTerrainMountain = new TerrainRenderer( config_mountains );
 
 
+        GenTerrainPlane();
+
         Vector3[] verts = GetGridSidesVerts();
         int[] indices = new int[verts.Length];
         for ( int i = 0; i < indices.Length; i++ ) indices[i] = i;
 
-        Vector3[] vertsTop = GetGridTopVerts();
-        int[] indicesTop = new int[vertsTop.Length];
-        for ( int i = 0; i < indicesTop.Length; i++ ) indicesTop[i] = i;
 
         // NEW
 
@@ -299,9 +277,8 @@ public class GridMaster : MonoBehaviour
 
 
         Grid.SidesIndices = indices;
-        Grid.TopPlaneIndices = indicesTop;
         Grid.VerticesSides = verts;
-        Grid.VerticesTop = vertsTop;
+
     }
 
     private void GetGridVerts()

@@ -47,6 +47,10 @@ public class MapGeneration : MonoBehaviour
     }
 
 
-    public void OnClickGenerateMap() => Awake();
+    public void OnClickGenerateMap()
+    {
+        FindObjectOfType<GridRenderer>().DebugReset();
+        Awake();
+    }
 
 }

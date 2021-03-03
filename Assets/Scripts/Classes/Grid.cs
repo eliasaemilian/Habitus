@@ -25,10 +25,8 @@ public class Grid
     public Cell[] CellsQueued;
 
 
-    // MESHES
+    // MESH BORDER
     public Vector3[] VerticesSides;
-    public Vector3[] VerticesTop;
-    public int[] TopPlaneIndices;
     public int[] SidesIndices;
 
     // TERRAIN
