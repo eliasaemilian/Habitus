@@ -10,28 +10,30 @@ public class TerrainRenderer
     public Material Mat_Terrain;
     public ComputeShader Compute_Terrain;
     public ComputeBuffer CmptBuffer;
-    public int IndicesTotal { get {  return  Vertices.Count; } }
+    public int IndicesTotal { get {  return  GridVertices.Count; } }
+
+    public List<GridVertex> GridVertices;
 
     // FOR DEBUG
-    public List<Vector3> Vertices;
+   // public List<Vector3> Vertices;
 
     public TerrainRenderer( Config_TerrainRenderer config ) 
     {
         Mat_Terrain = config.Mat_Terrain;
         Compute_Terrain = config.Compute_Terrain;
 
-        Vertices = new List<Vector3>();
-
+       // Vertices = new List<Vector3>();
+        GridVertices = new List<GridVertex>();
     }
 
 
     public void SetComputeBuffer()
     {
-        if ( Vertices.Count <= 0 ) return;
+        if ( GridVertices.Count <= 0 ) return;
 
         if ( CmptBuffer != null ) CmptBuffer.Dispose();
-        CmptBuffer = new ComputeBuffer( Vertices.Count, sizeof( float ) * 3, ComputeBufferType.Default );
-        CmptBuffer.SetData( Vertices );
+        CmptBuffer = new ComputeBuffer( GridVertices.Count, ( sizeof( float ) * 3 ) + sizeof ( int ), ComputeBufferType.Default );
+        CmptBuffer.SetData( GridVertices );
         Mat_Terrain.SetBuffer( "Vertices", CmptBuffer );
         
     }
@@ -50,7 +52,7 @@ public class TerrainRenderer
     public void Cleanup()
     {
         if ( CmptBuffer != null ) CmptBuffer.Dispose();
-        Vertices.Clear();
+        GridVertices.Clear();
 
     }
 }

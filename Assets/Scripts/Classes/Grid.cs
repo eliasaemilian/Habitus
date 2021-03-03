@@ -11,19 +11,15 @@ public class Grid
     public Cell[,] Cells;
 
     public Vector3[,] GridPoints;
-    public Vector3[] GridVerts;
-    public Vector3[] GridVertsOut;
-    public int[] GridIndices;
 
     // TILES
     public TileType[,] TileTypes;
-
-    public Dictionary<Vector3, Vector2> CenterColRowDict; // Lookup for Center Vert Position, Col [x] , Row [y]
 
 
     // RASTER
     public Vector3[] CenterPoints;
     public Cell[] CellsQueued;
+    public Vector3[] RasterVertices;
 
 
     // MESH BORDER
@@ -32,7 +28,7 @@ public class Grid
 
     // TERRAIN
     public TerrainRenderer TestTerrainGreen;
-    public TerrainRenderer TestTerrainMountain;
+ //   public TerrainRenderer TestTerrainMountain;
 
     public void InitTileTypes()
     {

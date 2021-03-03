@@ -5,7 +5,7 @@ using UnityEngine;
 public static class GridGeneration 
 {
 
-    private static void GetGridVerts(Grid Grid, float _tileHeight, float _tileWidth, float _tileThickness)
+    private static void GenerateVerticies(Grid Grid, float height, float width, float thickness)
     {
         if ( Grid.GridPoints.Length <= 0 ) return;
 
@@ -13,13 +13,13 @@ public static class GridGeneration
         List<int> indices = new List<int>();
         List<Vector3> verts = new List<Vector3>();
 
-        float r = _tileHeight * .5f;
-        float w = _tileWidth * .5f;
+        float r = height * .5f;
+        float w = width * .5f;
 
         for ( int i = 0; i < Grid.CenterPoints.Length; i++ )
         {
             Vector3 c = new Vector3( Grid.CenterPoints[i].x, 0, Grid.CenterPoints[i].z ); // center of tile
-            float y = _tileThickness;
+            float y = thickness;
 
             Vector3 p1 = new Vector3( c.x + r, y, c.z ); // 0
             Vector3 p2 = new Vector3( c.x + r * .5f, y, c.z - w ); // 1
@@ -96,18 +96,11 @@ public static class GridGeneration
         }
 
 
+        Grid.RasterVertices = new Vector3[indices.Count];
 
-
-        Grid.GridIndices = indices.ToArray();
-        Grid.GridVerts = verts.ToArray();
-        Grid.GridVertsOut = new Vector3[Grid.GridIndices.Length];
-
-        for ( int j = 0; j < Grid.GridIndices.Length; j++ )
+        for ( int j = 0; j < Grid.RasterVertices.Length; j++ )
         {
-            if ( Grid.GridIndices[j] < Grid.GridVerts.Length && Grid.GridIndices[j] >= 0 )
-                Grid.GridVertsOut[j] = Grid.GridVerts[Grid.GridIndices[j]];
-            else Debug.Log( " J IS " + j + " and above " + Grid.GridIndices.Length );
-
+            Grid.RasterVertices[j] = verts[indices[j]];
         }
 
     }

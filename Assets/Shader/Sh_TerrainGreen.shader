@@ -32,20 +32,29 @@
                 float2 uv : TEXCOORD0;
                 UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
+                float4 debugCol : TEXCOORD1;
             };
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
             fixed4 _Albedo;
 
-            StructuredBuffer<float3> Vertices;
+            struct Vertex
+            {
+                float3 pos;
+                int type; // = TerrainType
+            };
+
+            StructuredBuffer<Vertex> Vertices;
 
             v2f vert ( uint id : SV_VertexID, appdata v)
             {
                 v2f o;
-                o.vertex = UnityObjectToClipPos( float4( Vertices[id], 1.0f ) );
+                o.vertex = UnityObjectToClipPos( float4( Vertices[id].pos, 1.0f ) );
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 UNITY_TRANSFER_FOG(o,o.vertex);
+                if (Vertices[id].type == 1) o.debugCol = float4( 0, 1, 0, 1 );
+                else o.debugCol = float4( 1, 0, 0, 1 );
                 return o;
             }
 
@@ -55,7 +64,7 @@
                 fixed4 col = tex2D(_MainTex, i.uv);
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
-                return float4(_Albedo.xyz, 1);
+                return i.debugCol;
             }
             ENDCG
         }

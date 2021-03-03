@@ -2,20 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using System;
 
+[Serializable]
+public struct GridVertex
+{
+    public Vector3 vertex;
+    public int terrainType; // = TerrainType
+}
 
 [RequireComponent (typeof(MeshRenderer))] 
 public class GridRenderer : MonoBehaviour
 {
     private ComputeBuffer gridVertBuffer, sidesBuffer, topBuffer;
-    [SerializeField] private Material Mat_GridLines;
-    [SerializeField] private Material Mat_GridTop;
-    [SerializeField] private Material Mat_GridSides;
+    [SerializeField] private Material Mat_Raster;
+    [SerializeField] private Material Mat_GridBorder;
 
     private Dictionary<Camera, CommandBuffer> camsRaster = new Dictionary<Camera, CommandBuffer>();
     private Dictionary<Camera, CommandBuffer> camsMesh = new Dictionary<Camera, CommandBuffer>();
 
-    int indicesTotal, indicesSides, indicesTop;
+    int indicesRaster, indicesBorder;
     public bool gridOff;
 
     private Grid grid;
@@ -23,7 +29,7 @@ public class GridRenderer : MonoBehaviour
     private void OnToggleGrid()
     {
         gridOff = !gridOff;
-        if ( !gridOff ) InitGridLinesBuffer();
+        if ( !gridOff ) InitRasterBuffer();
         else DisposeGridRasterBuffer();
     }
 
@@ -41,8 +47,37 @@ public class GridRenderer : MonoBehaviour
     {
         grid = GetComponent<GridMaster>().Grid;
 
-        InitGridLinesBuffer();
-        InitGridSidesBuffer();
+        InitRasterBuffer();
+        InitGridBorderBuffer();
+    }
+
+
+
+    private void InitRasterBuffer()
+    {        
+        if ( grid.RasterVertices != null ) indicesRaster = grid.RasterVertices.Length;
+
+        if ( indicesRaster <= 0 ) return;
+
+        if ( gridVertBuffer != null ) gridVertBuffer.Dispose();
+        gridVertBuffer = new ComputeBuffer( indicesRaster, sizeof( float ) * 3, ComputeBufferType.Default );
+        gridVertBuffer.SetData( grid.RasterVertices );
+
+        Mat_Raster.SetBuffer( "VertBuffer", gridVertBuffer );
+    }
+
+    private void InitGridBorderBuffer()
+    {
+        Grid grid = GetComponent<GridMaster>().Grid;
+        indicesBorder = grid.VerticesSides.Length;
+
+        if ( indicesBorder <= 0 ) return;
+
+        if ( sidesBuffer != null ) sidesBuffer.Dispose();
+        sidesBuffer = new ComputeBuffer( indicesBorder, sizeof( float ) * 3, ComputeBufferType.Default );
+        sidesBuffer.SetData( grid.VerticesSides );
+
+        Mat_GridBorder.SetBuffer( "VertBuffer", sidesBuffer );
     }
 
     public void DebugReset()
@@ -50,46 +85,15 @@ public class GridRenderer : MonoBehaviour
         OnDisable();
     }
 
-    private void InitGridLinesBuffer()
-    {
-        
-        if ( grid.GridVertsOut != null ) indicesTotal = grid.GridVertsOut.Length;
-
-        if ( indicesTotal <= 0 ) return;
-
-        if ( gridVertBuffer != null ) gridVertBuffer.Dispose();
-        gridVertBuffer = new ComputeBuffer( indicesTotal, sizeof( float ) * 3, ComputeBufferType.Default );
-        gridVertBuffer.SetData( grid.GridVertsOut );
-
-        Mat_GridLines.SetBuffer( "VertBuffer", gridVertBuffer );
-    }
-
-    private void InitGridSidesBuffer()
-    {
-        Grid grid = GetComponent<GridMaster>().Grid;
-        indicesSides = grid.VerticesSides.Length;
-
-        if ( indicesSides <= 0 ) return;
-
-        if ( sidesBuffer != null ) sidesBuffer.Dispose();
-        sidesBuffer = new ComputeBuffer( indicesSides, sizeof( float ) * 3, ComputeBufferType.Default );
-        sidesBuffer.SetData( grid.VerticesSides );
-
-        Mat_GridSides.SetBuffer( "VertBuffer", sidesBuffer );
-    }
-
-
-
 
     private void OnDisable()
-    {
-       
+    {       
         if ( gridVertBuffer != null ) gridVertBuffer.Dispose();
         if ( sidesBuffer != null ) sidesBuffer.Dispose();
         if ( topBuffer != null ) topBuffer.Dispose();
 
         grid.TestTerrainGreen.Cleanup();
-        grid.TestTerrainMountain.Cleanup();
+       // grid.TestTerrainMountain.Cleanup();
 
         foreach ( var camera in camsRaster )
         {
@@ -109,7 +113,7 @@ public class GridRenderer : MonoBehaviour
     public void RefreshGridLines()
     {
         DisposeGridRasterBuffer();
-        InitGridLinesBuffer();
+        InitRasterBuffer();
         Debug.Log( "Update Grid" );
     }
 
@@ -125,6 +129,8 @@ public class GridRenderer : MonoBehaviour
         camsRaster.Clear();
     }
 
+
+    // ------------------------------------- DRAW CALL ---------------------------------------- //
     private void OnWillRenderObject()
     {
         bool isActive = gameObject.activeInHierarchy && enabled;
@@ -142,7 +148,6 @@ public class GridRenderer : MonoBehaviour
 
 
     }
-
     private void DrawMesh( Camera cam )
     {
         if ( camsRaster.ContainsKey( cam ) ) return;
@@ -154,10 +159,10 @@ public class GridRenderer : MonoBehaviour
 
         // Draw Terrain
         DrawTerrainMesh( grid.TestTerrainGreen, cmdMesh );
-        DrawTerrainMesh( grid.TestTerrainMountain, cmdMesh );
+       // DrawTerrainMesh( grid.TestTerrainMountain, cmdMesh );
 
         // Draw Border
-        // ---
+        DrawBorder( cmdMesh );
 
         // Add Cmd Buffer
         cam.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, cmdMesh );
@@ -165,8 +170,15 @@ public class GridRenderer : MonoBehaviour
 
     private void DrawTerrainMesh( TerrainRenderer renderer, CommandBuffer buf )
     {
+        Debug.Log( "Drawing Terrain " + renderer.Mat_Terrain);
         renderer.Mat_Terrain.SetPass( 0 );
-        buf.DrawProcedural( transform.localToWorldMatrix, renderer.Mat_Terrain, -1, MeshTopology.Triangles, renderer.Vertices.Count, 1 );
+        buf.DrawProcedural( transform.localToWorldMatrix, renderer.Mat_Terrain, -1, MeshTopology.Triangles, renderer.GridVertices.Count, 1 );
+    }
+
+    private void DrawBorder(CommandBuffer buf)
+    {
+        Mat_GridBorder.SetPass( 0 );
+        buf.DrawProcedural( transform.localToWorldMatrix, Mat_GridBorder, -1, MeshTopology.Triangles, indicesBorder, 1 );
     }
 
     private void DrawRaster(Camera cam)
@@ -178,10 +190,10 @@ public class GridRenderer : MonoBehaviour
         {
             CommandBuffer cmdRaster = new CommandBuffer();
             cmdRaster.name = "Grid Raster";
-            Mat_GridLines.SetPass( 0 );
+            Mat_Raster.SetPass( 0 );
 
             camsRaster[cam] = cmdRaster;
-            cmdRaster.DrawProcedural( transform.localToWorldMatrix, Mat_GridLines, -1, MeshTopology.Lines, indicesTotal, 1 );
+            cmdRaster.DrawProcedural( transform.localToWorldMatrix, Mat_Raster, -1, MeshTopology.Lines, indicesRaster, 1 );
             cam.AddCommandBuffer( CameraEvent.AfterEverything, cmdRaster );
         }
 

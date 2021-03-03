@@ -22,7 +22,7 @@ public class GridMaster : MonoBehaviour
 
     //TEMP
     public Config_TerrainRenderer config_green;
-    public Config_TerrainRenderer config_mountains;
+  //  public Config_TerrainRenderer config_mountains;
 
 
     void Awake()
@@ -55,7 +55,7 @@ public class GridMaster : MonoBehaviour
         }
 
         Grid.TestTerrainGreen.Cleanup();
-        Grid.TestTerrainMountain.Cleanup();
+      //  Grid.TestTerrainMountain.Cleanup();
     }
 
     public void OnClickClearGrid() => ClearGrid();
@@ -82,8 +82,6 @@ public class GridMaster : MonoBehaviour
         Grid.GridPoints = new Vector3[Grid.size , Grid.size];
         Grid.TileTypes = tileTypes;
 
-        Grid.CenterColRowDict = new Dictionary<Vector3, Vector2>();
-
 
         int i = 0;
         for ( int y = 0; y < ( Grid.size ); y++ ) // row
@@ -107,12 +105,12 @@ public class GridMaster : MonoBehaviour
                 Grid.GridPoints[x, y] = c.WorldPos;
                 Grid.CenterPoints[i] = c.WorldPos;
                 Grid.CellsQueued[i] = c;
-                Grid.CenterColRowDict.Add( c.WorldPos, c.ColRow );
+
                 i++;
             }
         }
 
-        GetGridVerts();
+        GenGridVertices();
         GenerateGridMeshes();
         InitRenderGrid();
             
@@ -245,11 +243,20 @@ public class GridMaster : MonoBehaviour
         {
             for ( int j = 0; j < Grid.Cells.GetLength( 1 ); j++ )
             {
-                if ( Grid.Cells[i, j].Tile.Type == TileType.blank ) Grid.TestTerrainGreen.Vertices.AddRange( Grid.Cells[i, j].GetTopVerts() );
-                else
+                Vector3[] verts = Grid.Cells[i, j].GetTopVerts();
+                for ( int k = 0; k < verts.Length; k++ )
                 {
-                    Grid.TestTerrainMountain.Vertices.AddRange( Grid.Cells[i, j].GetTopVerts() );
+                    GridVertex vert = new GridVertex();
+                    vert.vertex = verts[k];
+                    vert.terrainType = (int)Grid.Cells[i, j].Tile.Type;
+                    Grid.TestTerrainGreen.GridVertices.Add( vert );
                 }
+
+                //if ( Grid.Cells[i, j].Tile.Type == TileType.blank ) Grid.TestTerrainGreen.GridVertices.AddRange(  );
+                //else
+                //{
+                //    Grid.TestTerrainMountain.Vertices.AddRange( Grid.Cells[i, j].GetTopVerts() );
+                //}
             }
         }
     }
@@ -259,7 +266,7 @@ public class GridMaster : MonoBehaviour
 
         // TEMP
         Grid.TestTerrainGreen = new TerrainRenderer( config_green );
-        Grid.TestTerrainMountain = new TerrainRenderer( config_mountains );
+     //   Grid.TestTerrainMountain = new TerrainRenderer( config_mountains );
 
 
         GenTerrainPlane();
@@ -272,7 +279,7 @@ public class GridMaster : MonoBehaviour
         // NEW
 
         Grid.TestTerrainGreen.SetComputeBuffer();
-        Grid.TestTerrainMountain.SetComputeBuffer();
+      //  Grid.TestTerrainMountain.SetComputeBuffer();
 
 
         Grid.SidesIndices = indices;
@@ -280,7 +287,7 @@ public class GridMaster : MonoBehaviour
 
     }
 
-    private void GetGridVerts()
+    private void GenGridVertices()
     {
         if ( Grid.GridPoints.Length <= 0 ) return;
 
@@ -371,18 +378,11 @@ public class GridMaster : MonoBehaviour
         }
 
 
+        Grid.RasterVertices = new Vector3[indices.Count];
 
-
-        Grid.GridIndices = indices.ToArray();
-        Grid.GridVerts = verts.ToArray();
-        Grid.GridVertsOut = new Vector3[Grid.GridIndices.Length];
-
-        for ( int j = 0; j < Grid.GridIndices.Length; j++ )
+        for ( int j = 0; j < Grid.RasterVertices.Length; j++ )
         {
-            if ( Grid.GridIndices[j] < Grid.GridVerts.Length && Grid.GridIndices[j] >= 0 )
-                Grid.GridVertsOut[j] = Grid.GridVerts[Grid.GridIndices[j]];
-            else Debug.Log( " J IS " + j + " and above " + Grid.GridIndices.Length );
-
+            Grid.RasterVertices[j] = verts[indices[j]];
         }
 
     }
@@ -678,14 +678,4 @@ public class GridMaster : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
-    {
-        if ( Grid.GridVerts == null || Grid.GridVerts.Length < 0 ) return;
-        for ( int j = 0; j < Grid.GridVerts.Length; j++ )
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere( Grid.GridVerts[j], 0.07f );
-
-        }
-    }
 }

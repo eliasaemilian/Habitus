@@ -13,4 +13,7 @@ MonoBehaviour:
   m_Name: MapConfigTest
   m_EditorClassIdentifier: 
   GridSize: 10
+  TileHeight: 1
+  TileWidth: 1
+  TileThickness: 0.5
   Mountyness: 0.16

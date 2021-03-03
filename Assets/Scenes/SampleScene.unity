@@ -319,10 +319,15 @@ MonoBehaviour:
     CenterPoints: []
     CellsQueued: []
     VerticesSides: []
-    VerticesTop: []
-    TopPlaneIndices: 
     SidesIndices: 
-  _tile: {fileID: 7124045268657375602, guid: 20339fedcc31887478c0e483c385e85d, type: 3}
+    TestTerrainGreen:
+      Mat_Terrain: {fileID: 0}
+      Compute_Terrain: {fileID: 0}
+      Vertices: []
+    TestTerrainMountain:
+      Mat_Terrain: {fileID: 0}
+      Compute_Terrain: {fileID: 0}
+      Vertices: []
   _tileWidth: 1
   _tileHeight: 1
   _tileThickness: 0.5
@@ -331,6 +336,8 @@ MonoBehaviour:
   TestVerts: []
   TestIndices: 
   debugContainer: {fileID: 927864697}
+  config_green: {fileID: 11400000, guid: 96cbfa5d142b0e243bf489b7c5220513, type: 2}
+  config_mountains: {fileID: 11400000, guid: d915da1e0984b1b47b53674fa19be4dc, type: 2}
 --- !u!114 &510568829
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -343,9 +350,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e9162cf37e405b40a69ae78322e0f62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mat_GridLines: {fileID: 2100000, guid: f152a44e5c91f9a478ef7120dda9458a, type: 2}
-  Mat_GridTop: {fileID: 2100000, guid: 9828dadc358b0f040b85e6f157730601, type: 2}
-  Mat_GridSides: {fileID: 2100000, guid: 3f4f90b0bbfcb204faab26f41e3fe87f, type: 2}
+  Mat_Raster: {fileID: 2100000, guid: f152a44e5c91f9a478ef7120dda9458a, type: 2}
+  Mat_GridBorder: {fileID: 2100000, guid: 3f4f90b0bbfcb204faab26f41e3fe87f, type: 2}
   gridOff: 0
 --- !u!23 &510568830
 MeshRenderer:

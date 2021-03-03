@@ -38,14 +38,20 @@
             float4 _MainTex_ST;
             fixed4 _Albedo;
 
-            StructuredBuffer<float3> Vertices;
+            struct Vertex
+            {
+                float3 pos;
+                int terrainType; // = TerrainType
+            };
 
-            v2f vert ( uint id : SV_VertexID, appdata v)
+            StructuredBuffer<Vertex> Vertices;
+
+            v2f vert( uint id : SV_VertexID, appdata v )
             {
                 v2f o;
-                o.vertex = UnityObjectToClipPos( float4( Vertices[id], 1.0f ) );
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                UNITY_TRANSFER_FOG(o,o.vertex);
+                o.vertex = UnityObjectToClipPos( float4( Vertices[id].pos, 1.0f ) );
+                o.uv = TRANSFORM_TEX( v.uv, _MainTex );
+                UNITY_TRANSFER_FOG( o, o.vertex );
                 return o;
             }
 
