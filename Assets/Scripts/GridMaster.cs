@@ -241,7 +241,6 @@ public class GridMaster : MonoBehaviour
 
     private void GenTerrainPlane()
     {
-        List<Vector3> verts = new List<Vector3>();
         for ( int i = 0; i < Grid.Cells.GetLength( 0 ); i++ )
         {
             for ( int j = 0; j < Grid.Cells.GetLength( 1 ); j++ )

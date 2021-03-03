@@ -15,6 +15,7 @@ public class Grid
     public Vector3[] GridVertsOut;
     public int[] GridIndices;
 
+    // TILES
     public TileType[,] TileTypes;
 
     public Dictionary<Vector3, Vector2> CenterColRowDict; // Lookup for Center Vert Position, Col [x] , Row [y]
