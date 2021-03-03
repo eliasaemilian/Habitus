@@ -31,7 +31,9 @@ public class Grid
     public int[] TopPlaneIndices;
     public int[] SidesIndices;
 
-
+    // TERRAIN
+    public TerrainRenderer TestTerrainGreen;
+    public TerrainRenderer TestTerrainMountain;
 
     public void InitTileTypes()
     {

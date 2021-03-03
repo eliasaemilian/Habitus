@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class CameraController : MonoBehaviour
 {
@@ -19,6 +20,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float _cameraMinDistance = 1.5f;
     [SerializeField] private float _cameraMaxDistance = 100f;
 
+    public static UnityEvent CameraUpdate = new UnityEvent();
 
     // Start is called before the first frame update
     void Start()
@@ -29,18 +31,22 @@ public class CameraController : MonoBehaviour
         // Set Pivot to Grid Center
     }
 
+    bool updated;
     void LateUpdate()
     {
+        updated = false;
         // Rotation
         if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis( "Vertical" ) != 0 )           
         {
             _localRotation.x += Input.GetAxis( "Horizontal" ) * _mouseSensitivity;
             _localRotation.y += Input.GetAxis( "Vertical" ) * _mouseSensitivity;
+            updated = true;
         }
         else if ( Input.GetMouseButton(0) && ( Input.GetAxis( "Mouse X" ) != 0 || Input.GetAxis( "Mouse Y" ) != 0 ) )
         {
             _localRotation.x += Input.GetAxis( "Mouse X" ) * _mouseSensitivity;
             _localRotation.y += Input.GetAxis( "Mouse Y" ) * _mouseSensitivity;
+            updated = true;
         }
 
         _localRotation.y = Mathf.Clamp( _localRotation.y, 0f, 90f );
@@ -53,6 +59,8 @@ public class CameraController : MonoBehaviour
 
             _camDistance += scroll * -1f;
             _camDistance = Mathf.Clamp( _camDistance, _cameraMinDistance, _cameraMaxDistance );
+            updated = true;
+
         }
 
         // Apply Rotation
@@ -64,6 +72,8 @@ public class CameraController : MonoBehaviour
         {
             _cameraRig.localPosition = new Vector3( 0f, Mathf.Lerp( _cameraRig.localPosition.y, _camDistance * 1f, Time.deltaTime * _cameraScrollDampening ), 0f );
         }
+
+        if ( updated ) CameraUpdate.Invoke();
 
     }
 }

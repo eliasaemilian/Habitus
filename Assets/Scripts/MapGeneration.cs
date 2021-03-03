@@ -14,8 +14,7 @@ public class MapGeneration : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        // read Map Config
-
+        
         // generate Mountain Tiles from Mountyness
         tileTypes = new TileType[MapConfig.GridSize, MapConfig.GridSize];
 
@@ -47,10 +46,6 @@ public class MapGeneration : MonoBehaviour
 
     }
 
-    private void ComputeMountainHeightmap()
-    {
-
-    }
 
     public void OnClickGenerateMap() => Awake();
 

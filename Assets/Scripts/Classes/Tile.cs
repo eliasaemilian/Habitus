@@ -6,7 +6,7 @@ public class Tile
 {
     public TileType Type;
 
-    public GameObject RefGO;
+    public GameObject RefGO; // DEBUG
 }
 
 public enum TileType

@@ -22,6 +22,9 @@ public class GridMaster : MonoBehaviour
 
     public Transform debugContainer;
 
+    //TEMP
+    public Config_TerrainRenderer config_green;
+    public Config_TerrainRenderer config_mountains;
 
 
     void Awake()
@@ -52,6 +55,9 @@ public class GridMaster : MonoBehaviour
         {
             if ( c.Tile.RefGO != null ) DestroyImmediate( c.Tile.RefGO );
         }
+
+        Grid.TestTerrainGreen.Cleanup();
+        Grid.TestTerrainMountain.Cleanup();
     }
 
     public void OnClickClearGrid() => ClearGrid();
@@ -69,16 +75,17 @@ public class GridMaster : MonoBehaviour
         Grid.center.ColRow = new Vector2Int( 0, 0 );
         Grid.center.WorldPos = new Vector3( 0, 0, 0 );
 
+        // for grid raster
         Grid.CenterPoints = new Vector3[Grid.size * Grid.size];
         Grid.CellsQueued = new Cell[Grid.size * Grid.size];
 
+        // for grid mesh
         Grid.Cells = new Cell[Grid.size, Grid.size];
         Grid.GridPoints = new Vector3[Grid.size , Grid.size];
         Grid.TileTypes = tileTypes;
 
         Grid.CenterColRowDict = new Dictionary<Vector3, Vector2>();
 
-        //Grid.InitTileTypes();
 
         int i = 0;
         for ( int y = 0; y < ( Grid.size ); y++ ) // row
@@ -94,12 +101,9 @@ public class GridMaster : MonoBehaviour
                 if ( Grid.TileTypes[y, x] > 0 )
                 {
                     c.Tile = new Tile();
-                    //   c.Tile.RefGO = AddTileToCell( c, Grid.TileTypes[y, x] );
+                    c.Tile.Type = Grid.TileTypes[y, x];
                 }
 
-                // AddTileToCell( c, TileType.blank );
-
-               // Grid.Cells[i] = c;
 
                 Grid.Cells[x, y] = c;
                 Grid.GridPoints[x, y] = c.WorldPos;
@@ -261,6 +265,11 @@ public class GridMaster : MonoBehaviour
         {
             for ( int j = 0; j < Grid.Cells.GetLength( 1 ); j++ )
             {
+                if ( Grid.Cells[i, j].Tile.Type == TileType.blank ) Grid.TestTerrainGreen.Vertices.AddRange( Grid.Cells[i, j].GetTopVerts() );
+                else
+                {
+                    Grid.TestTerrainMountain.Vertices.AddRange( Grid.Cells[i, j].GetTopVerts() );
+                }
                 verts.AddRange( Grid.Cells[i, j].GetTopVerts() );
             }
         }
@@ -269,15 +278,24 @@ public class GridMaster : MonoBehaviour
 
     private void GenerateGridMeshes() 
     {
-        Mesh mesh = new Mesh();
+
+        // TEMP
+        Grid.TestTerrainGreen = new TerrainRenderer( config_green );
+        Grid.TestTerrainMountain = new TerrainRenderer( config_mountains );
+
+
         Vector3[] verts = GetGridSidesVerts();
         int[] indices = new int[verts.Length];
         for ( int i = 0; i < indices.Length; i++ ) indices[i] = i;
 
-        Mesh meshTop = new Mesh();
         Vector3[] vertsTop = GetGridTopVerts();
         int[] indicesTop = new int[vertsTop.Length];
         for ( int i = 0; i < indicesTop.Length; i++ ) indicesTop[i] = i;
+
+        // NEW
+
+        Grid.TestTerrainGreen.SetComputeBuffer();
+        Grid.TestTerrainMountain.SetComputeBuffer();
 
 
         Grid.SidesIndices = indices;
@@ -285,8 +303,6 @@ public class GridMaster : MonoBehaviour
         Grid.VerticesSides = verts;
         Grid.VerticesTop = vertsTop;
     }
-
-
 
     private void GetGridVerts()
     {
@@ -394,8 +410,6 @@ public class GridMaster : MonoBehaviour
         }
 
     }
-
-
 
     public bool GetCellOnClick(out Vector2Int hex)
     {

@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e21c84210b306ed4f9a9cab315b41550, type: 3}
+  m_Name: TerrainRendererConfigMountains
+  m_EditorClassIdentifier: 
+  Mat_Terrain: {fileID: 2100000, guid: 840e5375e01916a499010ac66164060a, type: 2}
+  Compute_Terrain: {fileID: 7200000, guid: 1fae6e84485b8084a934caa7e9b5dfc3, type: 3}

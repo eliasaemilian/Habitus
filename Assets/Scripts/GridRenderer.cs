@@ -4,24 +4,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 
-public class TerrainRenderer
-{
-    public Material Mat_Terrain;
-    public CommandBuffer Cmd_DrawTerrain;
-    public ComputeShader Compute_Terrain;
-
-    // FOR DEBUG
-    public Vector3[] Vertices;
-    public int[] Indices;
-}
-
-
 [RequireComponent (typeof(MeshRenderer))] 
 public class GridRenderer : MonoBehaviour
 {
-    private TerrainRenderer TestTerrainGreen;
-    private TerrainRenderer TestTerrainBlue;
-
     private ComputeBuffer gridVertBuffer, sidesBuffer, topBuffer;
     [SerializeField] private Material Mat_GridLines;
     [SerializeField] private Material Mat_GridTop;
@@ -32,6 +17,9 @@ public class GridRenderer : MonoBehaviour
 
     int indicesTotal, indicesSides, indicesTop;
     public bool gridOff;
+
+    private Grid grid;
+
     private void OnToggleGrid()
     {
         gridOff = !gridOff;
@@ -41,8 +29,12 @@ public class GridRenderer : MonoBehaviour
 
     void Start()
     {
+        grid = GetComponent<GridMaster>().Grid;
+
+        if ( FindObjectOfType<CameraController>() != null ) CameraController.CameraUpdate.AddListener( RefreshGridLines );
+
         // Toggle Grid
-        if (FindObjectOfType<InterfaceListener>() != null) InterfaceListener.ToggleGrid.AddListener( OnToggleGrid );
+        if ( FindObjectOfType<InterfaceListener>() != null) InterfaceListener.ToggleGrid.AddListener( OnToggleGrid );
 
 
         //
@@ -50,14 +42,16 @@ public class GridRenderer : MonoBehaviour
         InitGridSidesBuffer();
         InitGridTopPlaneBuffer();
 
+
     }
 
     private void InitGridLinesBuffer()
     {
-        Grid grid = GetComponent<GridMaster>().Grid;
+        
         indicesTotal = grid.GridVertsOut.Length;
 
         if ( indicesTotal <= 0 ) return;
+
 
         gridVertBuffer = new ComputeBuffer( indicesTotal, sizeof( float ) * 3, ComputeBufferType.Default );
         gridVertBuffer.SetData( grid.GridVertsOut );
@@ -91,12 +85,16 @@ public class GridRenderer : MonoBehaviour
         Mat_GridTop.SetBuffer( "VertBuffer", topBuffer );
     }
 
+
     private void OnDisable()
     {
        
         if ( gridVertBuffer != null ) gridVertBuffer.Dispose();
         if ( sidesBuffer != null ) sidesBuffer.Dispose();
         if ( topBuffer != null ) topBuffer.Dispose();
+
+        grid.TestTerrainGreen.Cleanup();
+        grid.TestTerrainMountain.Cleanup();
 
         foreach ( var camera in camsRaster )
         {
@@ -111,6 +109,13 @@ public class GridRenderer : MonoBehaviour
         camsRaster.Clear();
         camsMesh.Clear();
 
+    }
+
+    public void RefreshGridLines()
+    {
+        DisposeGridRasterBuffer();
+        InitGridLinesBuffer();
+        Debug.Log( "Update Grid" );
     }
 
     private void DisposeGridRasterBuffer()
@@ -140,28 +145,33 @@ public class GridRenderer : MonoBehaviour
         DrawMesh( cam );
         DrawRaster( cam );
 
+
     }
 
     private void DrawMesh( Camera cam )
     {
-        // if cmd buffer is already registered on camera, return
-        if ( camsMesh.ContainsKey( cam ) ) return;
+        if ( camsRaster.ContainsKey( cam ) ) return;
+
 
         CommandBuffer cmdMesh = new CommandBuffer();
         cmdMesh.name = "Grid Mesh";
-        Mat_GridSides.SetPass( 0 );
-        Mat_GridTop.SetPass( 0 );
 
         camsMesh[cam] = cmdMesh;
-        cmdMesh.DrawProcedural( transform.localToWorldMatrix, Mat_GridTop, -1, MeshTopology.Triangles, indicesTop, 1 );
-        cmdMesh.DrawProcedural( transform.localToWorldMatrix, Mat_GridSides, -1, MeshTopology.Triangles, indicesSides, 1 );
+
+        DrawTerrainMesh( grid.TestTerrainGreen, cmdMesh );
+        DrawTerrainMesh( grid.TestTerrainMountain, cmdMesh );
 
         cam.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, cmdMesh );
     }
 
+    private void DrawTerrainMesh( TerrainRenderer renderer, CommandBuffer buf )
+    {
+        renderer.Mat_Terrain.SetPass( 0 );
+        buf.DrawProcedural( transform.localToWorldMatrix, renderer.Mat_Terrain, -1, MeshTopology.Triangles, renderer.Vertices.Count, 1 );
+    }
+
     private void DrawRaster(Camera cam)
     {
-        // if cmd buffer is already registered on camera, return
         if ( camsRaster.ContainsKey( cam ) ) return;
 
 
