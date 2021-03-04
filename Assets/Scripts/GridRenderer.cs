@@ -15,8 +15,6 @@ public struct GridVertex
 public struct Hexagon
 {
     public Vector3 center;
-    public float width;
-    public float height;
 };
 
 [RequireComponent (typeof(MeshRenderer))] 

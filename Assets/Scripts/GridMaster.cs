@@ -60,13 +60,19 @@ public class GridMaster : MonoBehaviour
 
     public void OnClickClearGrid() => ClearGrid();
 
-    public void InitGrid( int size, TileType[,] tileTypes )
+    public void InitGrid( int size, TileType[,] tileTypes, float width, float height, float thickness, MapConfig configMap )
     {
         if ( Grid != null ) ClearGrid();
+
+        _tileHeight = height;
+        _tileThickness = thickness;
+        _tileWidth = width;
 
 
         Grid = new Grid();
         Grid.size = size;
+
+        Grid.config = configMap;
 
 
         Grid.center = new Cell();
@@ -143,7 +149,7 @@ public class GridMaster : MonoBehaviour
         int[] otherIndices = new int[( 3 * 24 ) + 36];
         int[] topPlane = new int[3 * 12];
         int c = 1;
-        Vector3 cTop = new Vector3( center.x, _tileThickness, center.z ); // index 13
+        Vector3 cTop = new Vector3( center.x, center.y + _tileThickness, center.z ); // index 13
         Vector3 cBot = center; // index 0
         verts[0] = cBot;
         verts[13] = cTop;
@@ -247,7 +253,9 @@ public class GridMaster : MonoBehaviour
         {
             for ( int j = 0; j < Grid.Cells.GetLength( 1 ); j++ )
             {
-                Grid.Cells[i, j]
+                Hexagon hex = new Hexagon();
+                hex.center = Grid.Cells[i, j].Center;
+                Grid.TestTerrainGreen.Hexagons.Add( hex );
 
                 Vector3[] verts = Grid.Cells[i, j].GetTopVerts();
                 for ( int k = 0; k < verts.Length; k++ )
@@ -267,7 +275,7 @@ public class GridMaster : MonoBehaviour
     {
 
         // TEMP
-        Grid.TestTerrainGreen = new TerrainRenderer( config_green );
+        Grid.TestTerrainGreen = new TerrainRenderer( config_green, Grid.config );
      //   Grid.TestTerrainMountain = new TerrainRenderer( config_mountains );
 
 

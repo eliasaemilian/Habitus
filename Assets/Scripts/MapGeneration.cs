@@ -21,7 +21,7 @@ public class MapGeneration : MonoBehaviour
         if ( MapConfig.Mountyness > 0 ) ComputeMountains();
 
         // pass to Grid
-        GridMaster.Instance.InitGrid( MapConfig.GridSize, tileTypes );
+        GridMaster.Instance.InitGrid( MapConfig.GridSize, tileTypes, MapConfig.TileWidth, MapConfig.TileHeight, MapConfig.TileThickness, MapConfig );
 
     }
 

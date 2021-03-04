@@ -28,7 +28,6 @@ public class Grid
 
     // TERRAIN
     public TerrainRenderer TestTerrainGreen;
-    public List<Hexagon> Hexagons;
 
     public void InitTileTypes()
     {
@@ -87,5 +86,9 @@ public class Grid
 
         return cells.ToArray();
     }
+
+
+    // DEBUG
+    public MapConfig config;
 
 }
