@@ -262,7 +262,7 @@ public class GridMaster : MonoBehaviour
                 {
                     GridVertex vert = new GridVertex();
                     vert.vertex = verts[k];
-                    vert.terrainType = (int)Grid.Cells[i, j].Tile.Type;
+               //     vert.terrainType = (int)Grid.Cells[i, j].Tile.Type;
                     Grid.TestTerrainGreen.GridVertices.Add( vert );
                 }
 
@@ -304,7 +304,7 @@ public class GridMaster : MonoBehaviour
         // vertices
         List<int> indices = new List<int>();
         List<Vector3> verts = new List<Vector3>();
-
+        
         r = _tileHeight * .5f;
         w = _tileWidth * .5f;
 

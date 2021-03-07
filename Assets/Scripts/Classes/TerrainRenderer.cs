@@ -22,6 +22,8 @@ public class TerrainRenderer
 
     public MapConfig configMap;
 
+    public int count;
+
     // FOR DEBUG
     // public List<Vector3> Vertices;
 
@@ -35,6 +37,7 @@ public class TerrainRenderer
         Hexagons = new List<Hexagon>();
 
         configMap = conDebug;
+
     }
 
 
@@ -46,13 +49,19 @@ public class TerrainRenderer
         if ( CmptBufferOut != null ) CmptBufferOut.Dispose();
 
         int countHex = Hexagons.Count;
-        int countOutHex = Hexagons.Count * 6 * ( ( 2 * 4 ) + ( 2 * 2 ) );
+        int countOutHex = 1;
 
-        // tess 0 count = Hexagons.Count * 6 * 3;
-        // tes 1 count = Hexagons.Count * 6 * ( ( 2 * 4 ) + ( 2 * 2 ) )
 
-        CmptBuffer = new ComputeBuffer( GridVertices.Count, ( sizeof( float ) * 3 ) + sizeof ( int ), ComputeBufferType.Default );
-        CmptBufferOut = new ComputeBuffer( countOutHex, ( sizeof( float ) * 3 ) + sizeof ( int ), ComputeBufferType.Default );
+
+        // get count by tesselation
+        Vector4 tesselation = new Vector4( 0, 0, 1, 0 );
+        if ( tesselation.x == 1 ) countOutHex = Hexagons.Count * 6 * 3;
+        else if (tesselation.y == 1) countOutHex = Hexagons.Count * 3 * ( ( 2 * 4 ) + ( 2 * 2 ) );
+        else if (tesselation.z == 1) countOutHex = Hexagons.Count * 3 * ( ( 2 * 12 ) + ( 2 * 4 ) );
+        count = countOutHex;
+
+        CmptBuffer = new ComputeBuffer( GridVertices.Count, ( sizeof( float ) * 3 ) /*+ sizeof ( int )*/, ComputeBufferType.Default );
+        CmptBufferOut = new ComputeBuffer( countOutHex * 8, ( sizeof( float ) * 3 ) /*+ sizeof ( int )*/, ComputeBufferType.Default );
         CmptBufferHexagons = new ComputeBuffer( countHex, Marshal.SizeOf(typeof(Hexagon)), ComputeBufferType.Default );
 
 
@@ -69,14 +78,16 @@ public class TerrainRenderer
 
         Compute_Terrain.SetFloat( "HexRadius", configMap.TileHeight * 0.5f );
         Compute_Terrain.SetFloat( "HexWidth", configMap.TileWidth * 0.5f );
+        Compute_Terrain.SetVector( "Tesselation", tesselation );
 
-        Compute_Terrain.Dispatch( kernelHandle, 1, 1, 1 );
+        Compute_Terrain.Dispatch( kernelHandle, 8, 8, 8 );
 
         DebugOut = new GridVertex[countOutHex];
         CmptBufferOut.GetData( DebugOut );
 
         Mat_Terrain.SetBuffer( "Vertices", CmptBufferOut );
-        
+
+
     }
 
 

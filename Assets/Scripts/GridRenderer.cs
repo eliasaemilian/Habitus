@@ -8,7 +8,7 @@ using System;
 public struct GridVertex
 {
     public Vector3 vertex;
-    public int terrainType; // = TerrainType
+ //   public int terrainType; // = TerrainType
 }
 
 [Serializable]
@@ -178,7 +178,7 @@ public class GridRenderer : MonoBehaviour
     {
         Debug.Log( "Drawing Terrain " + renderer.Mat_Terrain);
         renderer.Mat_Terrain.SetPass( 0 );
-        buf.DrawProcedural( transform.localToWorldMatrix, renderer.Mat_Terrain, -1, MeshTopology.Triangles, renderer.GridVertices.Count, 1 );
+        buf.DrawProcedural( transform.localToWorldMatrix, renderer.Mat_Terrain, -1, MeshTopology.Triangles, renderer.count, 1 );
     }
 
     private void DrawBorder(CommandBuffer buf)

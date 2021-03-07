@@ -11,7 +11,8 @@ public class MapConfig : ScriptableObject
     // GRID INFO
     public int GridSize;
     public float TileHeight;
-    public float TileWidth;
+    public float TileWidth { get { return TileHeight * 0.8660254f ; } }
+
     public float TileThickness;
 
     // TERRAIN ATTRIBUTES

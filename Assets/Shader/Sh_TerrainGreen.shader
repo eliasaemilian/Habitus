@@ -18,6 +18,7 @@
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+            #pragma target 4.0
 
             struct appdata
             {
@@ -39,10 +40,10 @@
             struct Vertex
             {
                 float3 pos;
-                int type; // = TerrainType -> float4 with 0 1 range then no branching just mltpy each texture with float x,y,z,w
+              //  int type; // = TerrainType -> float4 with 0 1 range then no branching just mltpy each texture with float x,y,z,w
             };
 
-            StructuredBuffer<Vertex> Vertices;
+            uniform StructuredBuffer<Vertex> Vertices;
 
             v2f vert ( uint id : SV_VertexID, appdata v)
             {
@@ -50,9 +51,11 @@
                 o.vertex = UnityObjectToClipPos( float4( Vertices[id].pos, 1.0f ) );
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
-                if (Vertices[id].type == 1) o.debugCol = float4( 0, 1, 0, 1 );
-                else o.debugCol = float4( 1, 0, 0, 1 );
+             /*   if (Vertices[id].type == 1) o.debugCol = float4( 0, 1, 0, 1 );
+                else o.debugCol = float4( 1, 0, 0, 1 );*/
 
+
+                o.debugCol = float4( 1, 0, 0, 1 );
                 return o;
             }
 
