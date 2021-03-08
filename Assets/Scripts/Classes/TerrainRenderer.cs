@@ -54,7 +54,7 @@ public class TerrainRenderer
 
 
         // get count by tesselation
-        Vector4 tesselation = new Vector4( 0, 0, 1, 0 );
+        Vector4 tesselation = new Vector4( 1, 0, 0, 0 );
         if ( tesselation.x == 1 ) countOutHex = Hexagons.Count * 6 * 3;
         else if (tesselation.y == 1) countOutHex = Hexagons.Count * 3 * ( ( 2 * 4 ) + ( 2 * 2 ) );
         else if (tesselation.z == 1) countOutHex = Hexagons.Count * 3 * ( ( 2 * 12 ) + ( 2 * 4 ) );

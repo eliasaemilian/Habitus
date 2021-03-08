@@ -128,12 +128,6 @@ public class Cell
         {
             verts.Add( HVerts[HIndicesTop[i]] );
         }
-        //if ( !IsConnected[2] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[0]], HVerts[HIndicesTop[1]], HVerts[HIndicesTop[2]] } );
-        //if ( !IsConnected[3] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[3]], HVerts[HIndicesTop[4]], HVerts[HIndicesTop[5]] } );
-        //if ( !IsConnected[4] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[6]], HVerts[HIndicesTop[7]], HVerts[HIndicesTop[8]] } );
-        //if ( !IsConnected[5] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[9]], HVerts[HIndicesTop[10]], HVerts[HIndicesTop[11]] } );
-        //if ( !IsConnected[0] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[12]], HVerts[HIndicesTop[13]], HVerts[HIndicesTop[14]] } );
-        //if ( !IsConnected[1] ) verts.AddRange( new Vector3[3] { HVerts[HIndicesTop[15]], HVerts[HIndicesTop[16]], HVerts[HIndicesTop[17]] } );
 
         return verts.ToArray();
     }
