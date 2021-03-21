@@ -8,7 +8,9 @@ using System;
 public struct GridVertex
 {
     public Vector3 vertex;
- //   public int terrainType; // = TerrainType
+    //   public int terrainType; // = TerrainType
+    public int n;
+    public int hid;
 }
 
 [Serializable]

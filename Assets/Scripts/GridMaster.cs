@@ -256,6 +256,7 @@ public class GridMaster : MonoBehaviour
                 Hexagon hex = new Hexagon();
                 hex.center = Grid.Cells[i, j].Center;
                 Grid.TestTerrainGreen.Hexagons.Add( hex );
+                Grid.TestTerrainGreen.HexBuffer[i, j] = hex;
 
                 Vector3[] verts = Grid.Cells[i, j].GetTopVerts();
                 for ( int k = 0; k < verts.Length; k++ )

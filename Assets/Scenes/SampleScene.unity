@@ -310,24 +310,25 @@ MonoBehaviour:
       Verts: []
       Neighbours: []
       IsConnected: 
+      Center: {x: 0, y: 0, z: 0}
       HVerts: []
       HIndicesTop: 
       HIndicesSides: 
-    GridVerts: []
-    GridVertsOut: []
-    GridIndices: 
     CenterPoints: []
     CellsQueued: []
+    RasterVertices: []
     VerticesSides: []
     SidesIndices: 
     TestTerrainGreen:
       Mat_Terrain: {fileID: 0}
       Compute_Terrain: {fileID: 0}
-      Vertices: []
-    TestTerrainMountain:
-      Mat_Terrain: {fileID: 0}
-      Compute_Terrain: {fileID: 0}
-      Vertices: []
+      GridVertices: []
+      Hexagons: []
+      DebugOut: []
+      DebugOutHex: []
+      configMap: {fileID: 11400000, guid: a961cecd29d18b5428f68b2ce181d5df, type: 2}
+      count: 0
+    config: {fileID: 11400000, guid: a961cecd29d18b5428f68b2ce181d5df, type: 2}
   _tileWidth: 1
   _tileHeight: 1
   _tileThickness: 0.5
@@ -337,7 +338,6 @@ MonoBehaviour:
   TestIndices: 
   debugContainer: {fileID: 927864697}
   config_green: {fileID: 11400000, guid: 96cbfa5d142b0e243bf489b7c5220513, type: 2}
-  config_mountains: {fileID: 11400000, guid: d915da1e0984b1b47b53674fa19be4dc, type: 2}
 --- !u!114 &510568829
 MonoBehaviour:
   m_ObjectHideFlags: 0
