@@ -18,6 +18,8 @@ struct Hexagon
 
 RWStructuredBuffer<Hexagon> debugHexOut;
 
+AppendStructuredBuffer<Vertex> AppendOut;
+
 StructuredBuffer<Hexagon> Hex2;
 StructuredBuffer<Hexagon> Hex;
 StructuredBuffer<Vertex> HexVertices; // IN
@@ -109,10 +111,11 @@ void AddTriangle( inout uint n, uint hid, float3 a, float3 b, float3 c )
 //    AddTriangle( n, t, ur, r );
 //}
 
+uint n;
+
 [numthreads( 8, 8, 1 )]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {    
-    uint n = 0;
 
     
        
@@ -127,23 +130,26 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     // for each center hex tesselate with width / heigth
     uint count = 0;
     uint stride = 0;
-    //Hex.GetDimensions( count, stride );
-    Hex2.GetDimensions( count, stride );
+    Hex.GetDimensions( count, stride );
+    //Hex2.GetDimensions( count, stride );
     //count = 1;
     // for each vertex in hex buffer
-    //for ( uint i = 0; i < _Size.x; i++ )
+    //for ( uint i = 0; i < count; i++ )
     //{
     //    for ( uint j = 0; j < _Size.y; j++ )
     //    {
             
     //    }
-       // float3 c = Hex[i].center;
         
         uint hid = ( id.x + id.y * _Size.x );
         
         if ( hid > _Size.x * _Size.y )
             return;
         
+        n = hid * 15;
+    
+      //  float3 c = Hex[i].center;
+
         float3 c = Hex2[hid].center;
 
     
@@ -172,14 +178,64 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         // Hex Indices
         
         // Factor 0
-        for ( uint j = 0; j < TESSELATION_FACTOR_0; j++ )
-        {
-            for ( uint k = 0; k < 5; k++ )
-            {
-                AddTriangle( n, hid, verts[k], verts[k + 1], c );
-            }
-            AddTriangle( n, hid, verts[0], c, verts[5] );
+        //for ( uint j = 0; j < TESSELATION_FACTOR_0; j++ ) // 15 Verts
+        //{
+            
+        //    for ( uint k = 0; k < 5; k++ )
+        //    {
+        //        AddTriangle( n, hid, verts[k], verts[k + 1], c );
+        //    }
+        //    AddTriangle( n, hid, verts[0], c, verts[5] );
+        //}
+        
+    for ( uint j = 0; j < TESSELATION_FACTOR_0; j++ ) // 15 Verts
+    {
+            
+        for ( uint k = 0; k < 5; k++ )
+        {            
+            float a = verts[k];
+            float b = verts[k + 1];
+            
+            Vertices[n].pos = a;
+            Vertices[n].n = n;
+            Vertices[n].hid = hid;
+            AppendOut.Append( Vertices[n] );
+    
+            Vertices[n + 1].pos = b;
+            Vertices[n + 1].n = n;
+            Vertices[n + 1].hid = hid;
+            AppendOut.Append( Vertices[n + 1] );
+
+    
+            Vertices[n + 2].pos = c;
+            Vertices[n + 2].n = n;
+            Vertices[n + 2].hid = hid;
+            AppendOut.Append( Vertices[n + 2] );
+
+            n = hid * 15 + ( k * 3 ) + 3;
         }
+        
+        
+        Vertices[n].pos = verts[0];
+        Vertices[n].n = n;
+        Vertices[n].hid = hid;
+        AppendOut.Append( Vertices[n] );
+
+        Vertices[n + 1].pos = c;
+        Vertices[n + 1].n = n;
+        Vertices[n + 1].hid = hid;
+        AppendOut.Append( Vertices[n + 1] );
+
+    
+        Vertices[n + 2].pos = verts[5];
+        Vertices[n + 2].n = n;
+        Vertices[n + 2].hid = hid;
+        AppendOut.Append( Vertices[n + 2] );
+
+       // n += 3;
+        
+       // GroupMemoryBarrierWithGroupSync();
+    }
     /*
         // Factor 1
         for ( j = 0; j < TESSELATION_FACTOR_1; j++ )
@@ -216,5 +272,5 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         }
      
     */
-   // }
+  // }
 }

@@ -69,7 +69,7 @@ public class TerrainRenderer
         count = countOutHex;
 
         CmptBuffer = new ComputeBuffer( GridVertices.Count, Marshal.SizeOf(typeof(GridVertex)), ComputeBufferType.Default );
-        CmptBufferOut = new ComputeBuffer( countOutHex * 8, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Default );
+        CmptBufferOut = new ComputeBuffer( countOutHex, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Default );
         CmptBufferHexagons = new ComputeBuffer( countHex, Marshal.SizeOf(typeof(Hexagon)), ComputeBufferType.Default );
         CmptBufferHexagons2 = new ComputeBuffer( (int)(size.x * size.y), Marshal.SizeOf(typeof(Hexagon)), ComputeBufferType.Default );
         ComputeBuffer debugOut = new ComputeBuffer( countHex, Marshal.SizeOf( typeof( Hexagon ) ), ComputeBufferType.Default );

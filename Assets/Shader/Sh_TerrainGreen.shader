@@ -40,6 +40,8 @@
             struct Vertex
             {
                 float3 pos;
+                int n;
+                int hid;
               //  int type; // = TerrainType -> float4 with 0 1 range then no branching just mltpy each texture with float x,y,z,w
             };
 
