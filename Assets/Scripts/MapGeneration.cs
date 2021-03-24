@@ -2,30 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapGeneration : MonoBehaviour
+public static class MapGeneration
 {
-    public MapConfig MapConfig;
-
-
-    // Generated Values //
-    private TileType[,] tileTypes;
-
-
-    // Start is called before the first frame update
-    void Awake()
+    public static TerrainType[,] GenerateTerrainTypes( Config_Map config )
     {
-        
-        // generate Mountain Tiles from Mountyness
-        tileTypes = new TileType[MapConfig.GridSize, MapConfig.GridSize];
+        TerrainType[,] tileTypes = new TerrainType[config.GridSize, config.GridSize];
+        if ( config.Mountyness > 0 ) ComputeMountains( config );
 
-        if ( MapConfig.Mountyness > 0 ) ComputeMountains();
 
-        // pass to Grid
-        GridMaster.Instance.InitGrid( MapConfig.GridSize, tileTypes, MapConfig.TileWidth, MapConfig.TileHeight, MapConfig.TileThickness, MapConfig );
-
+        return tileTypes;
     }
 
-    private void ComputeMountains()
+    private static void ComputeMountains( Config_Map MapConfig )
     {
         // 1st pass, set main mountain tiles
         for ( int x = 0; x < MapConfig.GridSize; x++ )
@@ -37,20 +25,13 @@ public class MapGeneration : MonoBehaviour
                 float prob = Mathf.PerlinNoise( px, py ) * MapConfig.Mountyness;
 
                 float r = Random.Range( 0f, 1f );
-
-                if ( r < prob ) tileTypes[x, y] = TileType.mountain;
-                else tileTypes[x, y] = TileType.blank;
+                
+              //  if ( r < prob ) tileTypes[x, y] = TileType.mountain;
+              //  else tileTypes[x, y] = TileType.blank;
                // Debug.Log( $"X: {x}, Y: {y} : Mountain Prob is {prob}" );
             }
         }
 
-    }
-
-
-    public void OnClickGenerateMap()
-    {
-        FindObjectOfType<GridRenderer>().DebugReset();
-        Awake();
     }
 
 }

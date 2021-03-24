@@ -1,0 +1,215 @@
+﻿#pragma kernel GenGridVertices
+#define NUM_THREADS  ( 8 )
+
+struct Vertex
+{
+    float3 pos;
+  //  int type; // = TerrainType
+    int n;
+    int hid;
+};
+
+struct Hexagon
+{
+    float3 center;
+    float4 tesselation;
+};
+
+
+
+
+StructuredBuffer<Hexagon> HexInput;
+uniform RWStructuredBuffer<Vertex> Vertices; // OUT
+//ConsumeStructuredBuffer<uint> ActiveIDs;
+AppendStructuredBuffer<Vertex> ActiveVerticesOut;
+
+float4 _Size;
+#define GRID_SIZE_X     ( (uint)_Size.x )
+#define GRID_SIZE_Y     ( (uint)_Size.y )
+#define HEX_RADIUS      ( _Size.z ) 
+#define HEX_WIDTH       ( _Size.w ) 
+
+float4 _Tesselation; 
+#define TESSELATION_FACTOR_0    ( (uint)_Tesselation.x)
+#define TESSELATION_FACTOR_1    ( (uint)_Tesselation.y)
+#define TESSELATION_FACTOR_2    ( (uint)_Tesselation.z)
+#define TESSELATION_FACTOR_3    ( (uint)_Tesselation.w)
+
+
+
+
+void AddTriangle( inout uint n, float3 a, float3 b, float3 c )
+{
+    Vertices[n].pos = a;
+    Vertices[n].n = n;
+    
+    Vertices[n + 1].pos = b;
+    Vertices[n + 1].n = n;
+
+    
+    Vertices[n + 2].pos = c;
+    Vertices[n + 2].n = n;
+
+    n += 3;
+}   
+
+void AddTessFullQuad( inout uint n, float3 t, float3 te[4] ) // right, down, left, up with t as middle point, 15 verts
+{
+    for ( uint i = 0; i < 3; i++ )
+    {
+        AddTriangle( n, t, te[i], te[i + 1] );
+    }
+    AddTriangle( n, t, te[i], te[0] );
+}
+
+void AddTessFullQuad( inout uint n, float3 t, float3 r, float3 rd, float3 d, float3 dl, float3 l, float3 lu, float3 u, float3 ur ) // right, down, left, up with t as middle point
+{
+    AddTriangle( n, t, r, rd );
+    AddTriangle( n, t, rd, dl );
+    AddTriangle( n, dl, rd, d );
+    AddTriangle( n, rd, r, d );
+    AddTriangle( n, t, dl, l );
+    AddTriangle( n, dl, d, l );
+    AddTriangle( n, t, l, lu );
+    AddTriangle( n, l, u, lu );
+    AddTriangle( n, t, lu, ur );
+    AddTriangle( n, lu, u, ur );
+    AddTriangle( n, t, ur, r );
+    AddTriangle( n, u, r, ur );
+}
+
+void AddTessTopHalf( inout uint n, float3 t, float3 r, float3 d, float3 l )
+{
+    AddTriangle( n, t, r, d );
+    AddTriangle( n, t, d, l );
+}
+
+void AddTessTopHalf( inout uint n, float3 t, float3 r, float3 rd, float3 d, float3 dl, float3 l )
+{
+    AddTriangle( n, t, r, rd );
+    AddTriangle( n, t, rd, d );
+    AddTriangle( n, t, d, dl );
+    AddTriangle( n, t, dl, l );
+}
+
+void AddTessBottomHalf( inout uint n, float3 t, float3 r, float3 l, float3 u )
+{
+    AddTriangle( n, t, u, r );
+    AddTriangle( n, t, l, u );
+}
+
+void AddTessBottomHalf( inout uint n, float3 t, float3 r, float3 l, float3 lu, float3 u, float3 ur )
+{
+    AddTriangle( n, t, l, lu );
+    AddTriangle( n, t, lu, u );
+    AddTriangle( n, t, u, ur );
+    AddTriangle( n, t, ur, r );
+}
+
+
+[numthreads( NUM_THREADS, NUM_THREADS, 1 )]
+void GenGridVertices( uint3 id : SV_DispatchThreadID )
+{    
+    uint n;
+      
+    float r = HEX_RADIUS;
+    float hr = r * .5;
+    float hhr = hr * .5;
+
+    float w = HEX_WIDTH;
+    float hw = w * .5;
+    float hhw = hw * .5;
+            
+    uint hid = id.x + id.y * GRID_SIZE_X;
+    
+    if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y )
+        return;
+   
+    if ( hid > GRID_SIZE_X * GRID_SIZE_Y )
+        return;
+    
+           
+        float3 c = HexInput[hid].center;
+
+    
+        // Hex Verts
+        float3 verts[6] =
+        {
+            float3( c.x + r, c.y, c.z ),
+            float3( c.x + hr, c.y, c.z - w ),
+            float3( c.x - hr, c.y, c.z - w ),
+            float3( c.x - r, c.y, c.z ),
+            float3( c.x - hr, c.y, c.z + w ),
+            float3( c.x + hr, c.y, c.z + w )
+        };
+        
+        
+        // Tesselation Factor 1 
+        float3 t1[4] =
+        {
+            float3( c.x + hr, c.y, c.z ),
+            float3( c.x - hr, c.y, c.z ),
+            float3( c.x, c.y, c.z - w ),
+            float3( c.x, c.y, c.z + w )
+        };
+       
+        
+        // Hex Indices
+        
+     // Factor 0
+    for ( uint j = 0; j < TESSELATION_FACTOR_0; j++ ) // 18 Verts
+    {      
+        n = hid * 18;
+
+        for ( uint k = 0; k < 5; k++ )
+        {
+            AddTriangle( n, verts[k], verts[k + 1], c );
+        }
+        AddTriangle( n, verts[0], c, verts[5] );
+    }
+        
+  
+    
+    // Factor 1
+    
+
+    for ( j = 0; j < TESSELATION_FACTOR_1; j++ )
+    {
+        n = hid * 36 ; 
+        
+        float3 a[4] = { verts[0], verts[1], c, verts[5] };
+        float3 b[4] = { c, verts[2], verts[3], verts[4] };
+        AddTessFullQuad( n, t1[0], a );
+        AddTessFullQuad( n, t1[1], b );
+
+        AddTessBottomHalf( n, t1[2], verts[1], verts[2], c );
+        AddTessTopHalf( n, t1[3], verts[5], c, verts[4] );
+    }
+
+    //Factor 2
+   
+    float3 t2[8] =
+    {
+        float3( t1[0].x + hhr, c.y, t1[0].z - hhw ), //a -> 0
+            float3( t1[1].x - hhr, c.y, t1[1].z - hhw ), //c -> 1
+            float3( t1[1].x - hhr, c.y, t1[1].z + hhw ), //d -> 2
+            float3( t1[0].x + hhr, c.y, t1[0].z + hhw ), //f -> 3
+            float3( c.x + hhr, c.y, c.z - hhw ), //g -> 4
+            float3( c.x - hhr, c.y, c.z - hhw ), //h -> 5
+            float3( c.x - hhr, c.y, c.z + hhw ), //i -> 6
+            float3( c.x + hhr, c.y, c.z + hhw ), //j -> 7                           
+    };
+        
+    for ( j = 0; j < TESSELATION_FACTOR_2; j++ )
+    {
+        n = hid * 96;
+        
+        AddTessFullQuad( n, t1[0], verts[0], t2[0], verts[1], t2[4], c, t2[7], verts[5], t2[3] );
+        AddTessFullQuad( n, t1[1], c, t2[5], verts[2], t2[1], verts[3], t2[2], verts[4], t2[6] );
+
+        AddTessBottomHalf( n, t1[2], verts[1], verts[2], t2[5], c, t2[4] );
+        AddTessTopHalf( n, t1[3], verts[5], t2[7], c, t2[6], verts[4] );
+    }
+     
+    
+    }

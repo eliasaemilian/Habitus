@@ -6,14 +6,33 @@ using UnityEngine;
 [Serializable]
 public class Grid
 {
-    public int size;
+    private int _size;
+    public int Size { get { return _size; } }
+
     public Cell center;
     public Cell[,] Cells;
 
     public Vector3[,] GridPoints;
 
     // TILES
-    public TileType[,] TileTypes;
+    private float _tileHeight;
+    public float TileHeight { get { return _tileHeight; } }
+    public float TileWidth { get { return _tileHeight * 0.8660254f; } }
+
+    private float _tileThickness;
+    public float TileThickness { get { return _tileThickness; } }
+
+    private TerrainType[,] _terrainTypes;
+
+
+    public Grid(Config_Map config)
+    {
+        _size = config.GridSize;
+        _tileHeight = config.TileSize;
+        _tileThickness = config.TileThickness;
+
+        _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
+    }
 
 
     // RASTER
@@ -29,29 +48,29 @@ public class Grid
     // TERRAIN
     public TerrainRenderer TestTerrainGreen;
 
-    public void InitTileTypes()
-    {
-        TileTypes = new TileType[size, size];
-        int half = ( size - 1 ) / 2;
-        if ( size % 2 != 0 ) // odd
-        {
-            TileTypes[half, half] = TileType.mountain;
-            TileTypes[half + 1, half] = TileType.blank;
-            TileTypes[half - 1, half] = TileType.blank;
-            TileTypes[half, half + 1] = TileType.blank;
-            TileTypes[half, half - 1] = TileType.blank;
-            TileTypes[half - 1, half + 1] = TileType.blank;
-            TileTypes[half - 1, half - 1] = TileType.blank;
-        }
-        else // even 
-        {
-            TileTypes[half, half] = TileType.blank;
-            TileTypes[half + 1, half] = TileType.blank;
-            TileTypes[half, half + 1] = TileType.blank;
-        }
+    //public void InitTileTypes()
+    //{
+    //    TileTypes = new TileType[size, size];
+    //    int half = ( size - 1 ) / 2;
+    //    if ( size % 2 != 0 ) // odd
+    //    {
+    //        TileTypes[half, half] = TileType.mountain;
+    //        TileTypes[half + 1, half] = TileType.blank;
+    //        TileTypes[half - 1, half] = TileType.blank;
+    //        TileTypes[half, half + 1] = TileType.blank;
+    //        TileTypes[half, half - 1] = TileType.blank;
+    //        TileTypes[half - 1, half + 1] = TileType.blank;
+    //        TileTypes[half - 1, half - 1] = TileType.blank;
+    //    }
+    //    else // even 
+    //    {
+    //        TileTypes[half, half] = TileType.blank;
+    //        TileTypes[half + 1, half] = TileType.blank;
+    //        TileTypes[half, half + 1] = TileType.blank;
+    //    }
 
 
-    }
+    //}
 
     public Cell[] GetNeighbourCellsByCell( Cell c )
     {
@@ -86,9 +105,5 @@ public class Grid
 
         return cells.ToArray();
     }
-
-
-    // DEBUG
-    public MapConfig config;
 
 }

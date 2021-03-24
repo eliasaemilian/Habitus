@@ -11,7 +11,7 @@ public class Cell
     public bool ElevatedOnZ;
     public Vector3[] Verts;
 
-    public Tile Tile;
+    public Hexagon Tile;
     public Vector2Int[] Neighbours;
     public bool[] IsConnected;
 

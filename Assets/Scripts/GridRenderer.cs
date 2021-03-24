@@ -13,11 +13,6 @@ public struct GridVertex
     public int hid;
 }
 
-[Serializable]
-public struct Hexagon
-{
-    public Vector3 center;
-};
 
 [RequireComponent (typeof(MeshRenderer))] 
 public class GridRenderer : MonoBehaviour
@@ -178,7 +173,7 @@ public class GridRenderer : MonoBehaviour
 
     private void DrawTerrainMesh( TerrainRenderer renderer, CommandBuffer buf )
     {
-        Debug.Log( "Drawing Terrain " + renderer.Mat_Terrain);
+        Debug.Log( "Drawing Terrain " + renderer.Mat_Terrain + " with " + renderer.count + " Vertices");
         renderer.Mat_Terrain.SetPass( 0 );
         buf.DrawProcedural( transform.localToWorldMatrix, renderer.Mat_Terrain, -1, MeshTopology.Triangles, renderer.count, 1 );
     }

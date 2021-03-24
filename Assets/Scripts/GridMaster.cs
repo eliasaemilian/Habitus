@@ -49,10 +49,6 @@ public class GridMaster : MonoBehaviour
     {
         if ( Grid.Cells == null || Grid.Cells.Length <= 0 ) return;
 
-        foreach ( Cell c in Grid.Cells )
-        {
-            if ( c.Tile.RefGO != null ) DestroyImmediate( c.Tile.RefGO );
-        }
 
         Grid.TestTerrainGreen.Cleanup();
       //  Grid.TestTerrainMountain.Cleanup();
@@ -60,7 +56,7 @@ public class GridMaster : MonoBehaviour
 
     public void OnClickClearGrid() => ClearGrid();
 
-    public void InitGrid( int size, TileType[,] tileTypes, float width, float height, float thickness, MapConfig configMap )
+    public void InitGrid( int size, Config_TerrainType[,] tileTypes, float width, float height, float thickness, Config_Map configMap )
     {
         if ( Grid != null ) ClearGrid();
 
@@ -70,7 +66,7 @@ public class GridMaster : MonoBehaviour
 
 
         Grid = new Grid();
-        Grid.size = size;
+        Grid.Size = size;
 
         Grid.config = configMap;
 
@@ -80,31 +76,33 @@ public class GridMaster : MonoBehaviour
         Grid.center.WorldPos = new Vector3( 0, 0, 0 );
 
         // for grid raster
-        Grid.CenterPoints = new Vector3[Grid.size * Grid.size];
-        Grid.CellsQueued = new Cell[Grid.size * Grid.size];
+        Grid.CenterPoints = new Vector3[Grid.Size * Grid.Size];
+        Grid.CellsQueued = new Cell[Grid.Size * Grid.Size];
 
         // for grid mesh
-        Grid.Cells = new Cell[Grid.size, Grid.size];
-        Grid.GridPoints = new Vector3[Grid.size , Grid.size];
-        Grid.TileTypes = tileTypes;
+        Grid.Cells = new Cell[Grid.Size, Grid.Size];
+        Grid.GridPoints = new Vector3[Grid.Size , Grid.Size];
+      //  Grid.TileTypes = tileTypes;
 
 
         int i = 0;
-        for ( int y = 0; y < ( Grid.size ); y++ ) // row
+        for ( int y = 0; y < ( Grid.Size ); y++ ) // row
         {
-            for ( int x = 0; x < ( Grid.size ); x++ ) // col
+            for ( int x = 0; x < ( Grid.Size ); x++ ) // col
             {
                 Cell c = new Cell();
                 c.ColRow = new Vector2Int( x, y );
                 c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
-                c.SetNeighbours( Grid.size );
+                c.SetNeighbours( Grid.Size );
+
+                c.Tile = new Hexagon();
 
 
-                if ( Grid.TileTypes[y, x] > 0 )
-                {
-                    c.Tile = new Tile();
-                    c.Tile.Type = Grid.TileTypes[y, x];
-                }
+                //if ( Grid.TileTypes[y, x] > 0 )
+                //{
+                //    c.Tile = new Hexagon();
+                //    c.Tile.Type = Grid.TileTypes[y, x];
+                //}
 
 
                 Grid.Cells[x, y] = c;
@@ -255,8 +253,8 @@ public class GridMaster : MonoBehaviour
             {
                 Hexagon hex = new Hexagon();
                 hex.center = Grid.Cells[i, j].Center;
-                Grid.TestTerrainGreen.Hexagons.Add( hex );
-                Grid.TestTerrainGreen.HexBuffer[i, j] = hex;
+                Grid.TestTerrainGreen.AddHexagonToRenderer( i, j, hex );
+                Debug.Log( $"Hex [x {i}, y{j}]   {hex.center}" );
 
                 Vector3[] verts = Grid.Cells[i, j].GetTopVerts();
                 for ( int k = 0; k < verts.Length; k++ )
@@ -369,7 +367,7 @@ public class GridMaster : MonoBehaviour
                     }
                     else // Column EVEN
                     {
-                        if ( cell.ColRow.x == Grid.size - 1 ) cverts.Add( p1 ); //repl. col
+                        if ( cell.ColRow.x == Grid.Size - 1 ) cverts.Add( p1 ); //repl. col
                     }
 
                 }
@@ -428,7 +426,7 @@ public class GridMaster : MonoBehaviour
             for ( int x = tC - 1; x <= tC + 1; ++x )
                 for ( int y = tR - 1; y <= tR + 1; ++y )
                 {
-                    if ( x < 0 || x >= Grid.size || y < 0 || y >= Grid.size ) continue;
+                    if ( x < 0 || x >= Grid.Size || y < 0 || y >= Grid.Size ) continue;
                     float dist = Vector2.Distance( new Vector2( Grid.Cells[x, y].WorldPos.x, Grid.Cells[x, y].WorldPos.z ), pos );
                     if ( dist < minimum )
                     {
@@ -517,9 +515,9 @@ public class GridMaster : MonoBehaviour
         }
         else  // ROW 1 & ABOVE
         {
-            int row0 = 6 + ( ( Grid.size - 1 ) * 4 ); // repl col for all 3
-            int half = ( Grid.size / 2 );
-            int odd = ( Grid.size % 2 != 0 ) ? 1 : 0;
+            int row0 = 6 + ( ( Grid.Size - 1 ) * 4 ); // repl col for all 3
+            int half = ( Grid.Size / 2 );
+            int odd = ( Grid.Size % 2 != 0 ) ? 1 : 0;
 
             if ( cell.ColRow.x == 0 )
             {
@@ -629,7 +627,7 @@ public class GridMaster : MonoBehaviour
                 if ( cell.ColRow.y > 1 ) pastRow = ( Mathf.Clamp( ( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y ) * ( row ) ) + thisRowAdded + row0;
 
 
-                if ( cell.ColRow.x == Grid.size - 1 ) // repl. col
+                if ( cell.ColRow.x == Grid.Size - 1 ) // repl. col
                 {
                     indices.Add( current - 3 );
                     indices.Add( current + 1 );
@@ -664,29 +662,19 @@ public class GridMaster : MonoBehaviour
     {
         if ( GetCellOnClick( out Vector2Int hex ) )
         {
-            CleanAllTilesDebug();
 
-            Grid.Cells[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
-            Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.size );
+          //  Grid.Cells[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+            Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.Size );
             Cell[] neighbours = Grid.GetNeighbourCellsByCell( Grid.Cells[hex.x, hex.y] );
 
             for ( int i = 0; i < neighbours.Length; i++ )
             {
-                neighbours[i].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.blue;
+              //  neighbours[i].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.blue;
             }
         }
 
     }
 
-    public void CleanAllTilesDebug()
-    {
-        for ( int i = 0; i < Grid.Cells.Length; i++ )
-        {
-            for ( int j = 0; j < Grid.Cells.Length; i++ )
-            {
-                Grid.Cells[i,j].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.white;
-            }
-        }
-    }
+
 
 }
