@@ -8,11 +8,6 @@ public class GridMaster : MonoBehaviour
 
     public Grid Grid;
 
-    [SerializeField] private float _tileWidth;
-    [SerializeField] private float _tileHeight;
-    [SerializeField] private float _tileThickness;
-
-    public Material testMat, testMat2;
     public Vector3[] TestVerts;
     public int[] TestIndices;
 
@@ -20,10 +15,7 @@ public class GridMaster : MonoBehaviour
 
     public Transform debugContainer;
 
-    //TEMP
-    public Config_TerrainRenderer config_green;
-  //  public Config_TerrainRenderer config_mountains;
-
+    [SerializeField] Config_Map _mapConfig;
 
     void Awake()
     {
@@ -41,6 +33,7 @@ public class GridMaster : MonoBehaviour
          */
     }
 
+
     private void Update()
     {
         if ( Input.GetMouseButtonUp( 0 ) ) OnClickNeighbourDebug();
@@ -50,26 +43,16 @@ public class GridMaster : MonoBehaviour
         if ( Grid.Cells == null || Grid.Cells.Length <= 0 ) return;
 
 
-        Grid.TestTerrainGreen.Cleanup();
-      //  Grid.TestTerrainMountain.Cleanup();
+        Grid.CleanUp();
     }
 
     public void OnClickClearGrid() => ClearGrid();
 
-    public void InitGrid( int size, Config_TerrainType[,] tileTypes, float width, float height, float thickness, Config_Map configMap )
+    public void InitGrid( int size, Config_Terrain[,] tileTypes, float width, float height, float thickness, Config_Map configMap )
     {
         if ( Grid != null ) ClearGrid();
 
-        _tileHeight = height;
-        _tileThickness = thickness;
-        _tileWidth = width;
-
-
-        Grid = new Grid();
-        Grid.Size = size;
-
-        Grid.config = configMap;
-
+        Grid = new Grid( configMap );
 
         Grid.center = new Cell();
         Grid.center.ColRow = new Vector2Int( 0, 0 );
@@ -82,7 +65,10 @@ public class GridMaster : MonoBehaviour
         // for grid mesh
         Grid.Cells = new Cell[Grid.Size, Grid.Size];
         Grid.GridPoints = new Vector3[Grid.Size , Grid.Size];
-      //  Grid.TileTypes = tileTypes;
+        //  Grid.TileTypes = tileTypes;
+
+        //
+        Grid.DebugWorldMatrix = transform.localToWorldMatrix;
 
 
         int i = 0;
@@ -131,8 +117,8 @@ public class GridMaster : MonoBehaviour
 
         if ( gridPos.x % 2 != 0 ) s = 1;
 
-        float x = Grid.center.WorldPos.x + gridPos.x * ( ( _tileHeight / 2 ) + ( _tileHeight / 4 ) );
-        float z = Grid.center.WorldPos.z + ( s + gridPos.y * 2 ) * ( _tileWidth / 2 );
+        float x = Grid.center.WorldPos.x + gridPos.x * ( ( Grid.TileHeight / 2 ) + ( Grid.TileHeight / 4 ) );
+        float z = Grid.center.WorldPos.z + ( s + gridPos.y * 2 ) * ( Grid.TileWidth / 2 );
 
         elevatedOnZ = s != 0 ? true : false;
         return new Vector3( x, 0, z );
@@ -147,7 +133,7 @@ public class GridMaster : MonoBehaviour
         int[] otherIndices = new int[( 3 * 24 ) + 36];
         int[] topPlane = new int[3 * 12];
         int c = 1;
-        Vector3 cTop = new Vector3( center.x, center.y + _tileThickness, center.z ); // index 13
+        Vector3 cTop = new Vector3( center.x, center.y + Grid.TileThickness, center.z ); // index 13
         Vector3 cBot = center; // index 0
         verts[0] = cBot;
         verts[13] = cTop;
@@ -253,17 +239,17 @@ public class GridMaster : MonoBehaviour
             {
                 Hexagon hex = new Hexagon();
                 hex.center = Grid.Cells[i, j].Center;
-                Grid.TestTerrainGreen.AddHexagonToRenderer( i, j, hex );
+                Grid.AddHexagon( i, j, hex );
                 Debug.Log( $"Hex [x {i}, y{j}]   {hex.center}" );
 
-                Vector3[] verts = Grid.Cells[i, j].GetTopVerts();
-                for ( int k = 0; k < verts.Length; k++ )
-                {
-                    GridVertex vert = new GridVertex();
-                    vert.vertex = verts[k];
-               //     vert.terrainType = (int)Grid.Cells[i, j].Tile.Type;
-                    Grid.TestTerrainGreen.GridVertices.Add( vert );
-                }
+               // Vector3[] verts = Grid.Cells[i, j].GetTopVerts();
+               // for ( int k = 0; k < verts.Length; k++ )
+               // {
+               //     GridVertex vert = new GridVertex();
+               //     vert.vertex = verts[k];
+               ////     vert.terrainType = (int)Grid.Cells[i, j].Tile.Type;
+               //     Grid.TerrainRenderer.GridVertices.Add( vert );
+               // }
 
 
             }
@@ -272,11 +258,6 @@ public class GridMaster : MonoBehaviour
 
     private void GenerateGridMeshes() 
     {
-
-        // TEMP
-        Grid.TestTerrainGreen = new TerrainRenderer( config_green, Grid.config );
-     //   Grid.TestTerrainMountain = new TerrainRenderer( config_mountains );
-
 
         GenTerrainPlane();
 
@@ -287,8 +268,7 @@ public class GridMaster : MonoBehaviour
 
         // NEW
 
-        Grid.TestTerrainGreen.SetComputeBuffer();
-      //  Grid.TestTerrainMountain.SetComputeBuffer();
+        Grid.GenerateProceduralGrid();
 
 
         Grid.SidesIndices = indices;
@@ -304,13 +284,13 @@ public class GridMaster : MonoBehaviour
         List<int> indices = new List<int>();
         List<Vector3> verts = new List<Vector3>();
         
-        r = _tileHeight * .5f;
-        w = _tileWidth * .5f;
+        r = Grid.TileHeight * .5f;
+        w = Grid.TileWidth * .5f;
 
         for ( int i = 0; i < Grid.CenterPoints.Length; i++ )
         {
             Vector3 c = new Vector3( Grid.CenterPoints[i].x, 0, Grid.CenterPoints[i].z ); // center of tile
-            float y = _tileThickness;
+            float y = Grid.TileThickness;
 
             Vector3 p1 = new Vector3( c.x + r, y, c.z ); // 0
             Vector3 p2 = new Vector3( c.x + r * .5f, y, c.z - w ); // 1
@@ -400,19 +380,19 @@ public class GridMaster : MonoBehaviour
     {
         RaycastHit hit;
         hex = new Vector2Int();
-        Ray ray = Camera.main.ScreenPointToRay( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - _tileThickness ) );
+        Ray ray = Camera.main.ScreenPointToRay( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - Grid.TileThickness ) );
         if ( Physics.Raycast( ray, out hit ) )
         {           
             Vector3 p = hit.point;
 
             float col; float row;
 
-            float unit = _tileWidth + ( _tileWidth * .5f );
+            float unit = Grid.TileWidth + ( Grid.TileWidth * .5f );
             col = p.x / unit;
             col *= 2;
 
             // row
-            unit = _tileHeight;
+            unit = Grid.TileHeight;
             row = p.z / unit;
 
             int tC = Mathf.RoundToInt( col );
@@ -422,7 +402,7 @@ public class GridMaster : MonoBehaviour
             Vector2 pos = new Vector2( p.x, p.z );
 
             // Search for the nearest hexagon
-            float minimum = 2 * _tileWidth;  
+            float minimum = 2 * Grid.TileWidth;  
             for ( int x = tC - 1; x <= tC + 1; ++x )
                 for ( int y = tR - 1; y <= tR + 1; ++y )
                 {

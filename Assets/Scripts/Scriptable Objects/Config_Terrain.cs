@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu( fileName = "TerrainType", menuName = "Configs/Terrain" )]
-public class Config_TerrainType : ScriptableObject
+[CreateAssetMenu( fileName = "Terrain", menuName = "Configs/Map" )]
+public class Config_Terrain : ScriptableObject
 {
     public string TerrainName;
     public int ID;
@@ -16,6 +16,10 @@ public class Config_TerrainType : ScriptableObject
     //forest,
     //river,
     //lake
+
+    [Header( "Terrain Renderer" )]
+    public Material Mat_Terrain;
+    public ComputeShader Compute_Terrain;
 }
 
 public class TerrainType
@@ -26,7 +30,7 @@ public class TerrainType
     private int _tesselation;
     public int Tesselation { get { return _tesselation; } }
 
-    public TerrainType(Config_TerrainType config)
+    public TerrainType(Config_Terrain config)
     {
         _id = config.ID;
         _tesselation = config.Tesselation;

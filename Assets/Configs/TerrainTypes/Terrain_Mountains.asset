@@ -9,8 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e21c84210b306ed4f9a9cab315b41550, type: 3}
-  m_Name: TerrainRendererConfigMountains
-  m_EditorClassIdentifier: 
+  m_Script: {fileID: 11500000, guid: cb0e4fc76b0c25d469ef884fefb5ad0e, type: 3}
+  m_Name: Terrain_Mountains
+  m_EditorClassIdentifier: Assembly-CSharp::Config_TileType
+  TerrainName: Mountains
+  ID: 1
+  Tesselation: 2
   Mat_Terrain: {fileID: 2100000, guid: 840e5375e01916a499010ac66164060a, type: 2}
   Compute_Terrain: {fileID: 7200000, guid: 1fae6e84485b8084a934caa7e9b5dfc3, type: 3}

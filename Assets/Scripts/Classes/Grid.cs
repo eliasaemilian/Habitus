@@ -24,15 +24,9 @@ public class Grid
 
     private TerrainType[,] _terrainTypes;
 
+    public Matrix4x4 DebugWorldMatrix;
 
-    public Grid(Config_Map config)
-    {
-        _size = config.GridSize;
-        _tileHeight = config.TileSize;
-        _tileThickness = config.TileThickness;
 
-        _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
-    }
 
 
     // RASTER
@@ -46,7 +40,32 @@ public class Grid
     public int[] SidesIndices;
 
     // TERRAIN
-    public TerrainRenderer TestTerrainGreen;
+    [SerializeField] private TerrainRenderer[] _terrainRenderers;
+
+    public Grid( Config_Map config )
+    {
+        _size = config.GridSize;
+        _tileHeight = config.TileSize;
+        _tileThickness = config.TileThickness;
+
+        _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
+
+        InitTerrainRenderers( config );
+    }
+
+    public void InitTerrainRenderers( Config_Map config )
+    {
+        _terrainRenderers = new TerrainRenderer[config.Terrains.Count];
+        for ( int i = 0; i < config.Terrains.Count; i++ )
+        {
+            _terrainRenderers[i] = new TerrainRenderer( config.GridSize , config.TileSize, config.Terrains[i] );
+        }
+    }
+
+    public void AddHexagon( int x, int y, Hexagon hex )
+    {
+        GetTerrainRendererByID( _terrainTypes[x, y].ID ).AddHexagonToRenderer( x, y, hex );
+    }
 
     //public void InitTileTypes()
     //{
@@ -71,6 +90,14 @@ public class Grid
 
 
     //}
+
+    public void GenerateProceduralGrid()
+    {
+        for ( int i = 0; i < _terrainRenderers.Length; i++ )
+        {
+            _terrainRenderers[i].SetComputeBuffer();
+        }
+    }
 
     public Cell[] GetNeighbourCellsByCell( Cell c )
     {
@@ -106,4 +133,39 @@ public class Grid
         return cells.ToArray();
     }
 
+    public void CleanUp()
+    {
+        if (_terrainRenderers != null)
+        {
+            for ( int i = 0; i < _terrainRenderers.Length; i++ )
+            {
+                _terrainRenderers[i].CleanUp();
+            }
+        }
+
+    }
+
+    public void DrawTerrainProcedural(ref UnityEngine.Rendering.CommandBuffer buf)
+    {
+        if ( _terrainRenderers == null ) return;
+
+        for ( int i = 0; i < _terrainRenderers.Length; i++ )
+        {
+            _terrainRenderers[i].Mat_Terrain.SetPass( 0 );
+            buf.DrawProcedural( DebugWorldMatrix, _terrainRenderers[i].Mat_Terrain, -1, MeshTopology.Triangles, _terrainRenderers[i].count, 1 );
+
+            Debug.Log( "Drawing Terrain " + _terrainRenderers[i].Mat_Terrain + " with " + _terrainRenderers[i].count + " Vertices" );
+        }
+    }
+
+    public TerrainRenderer GetTerrainRendererByID( int id )
+    {
+        for ( int i = 0; i < _terrainRenderers.Length; i++ )
+        {
+            if ( _terrainRenderers[i].ID == id ) return _terrainRenderers[i];
+        }
+
+        Debug.LogError( $"No valid TerrainRenderer could be found for ID {id}" );
+        return null;
+    }
 }

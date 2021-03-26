@@ -95,7 +95,7 @@ public class GridRenderer : MonoBehaviour
         if ( sidesBuffer != null ) sidesBuffer.Dispose();
         if ( topBuffer != null ) topBuffer.Dispose();
 
-        grid.TestTerrainGreen.Cleanup();
+        grid.CleanUp();
        // grid.TestTerrainMountain.Cleanup();
 
         foreach ( var camera in camsRaster )
@@ -161,7 +161,8 @@ public class GridRenderer : MonoBehaviour
         camsMesh[cam] = cmdMesh;
 
         // Draw Terrain
-        DrawTerrainMesh( grid.TestTerrainGreen, cmdMesh );
+        
+        DrawTerrainMesh( cmdMesh );
        // DrawTerrainMesh( grid.TestTerrainMountain, cmdMesh );
 
         // Draw Border
@@ -171,11 +172,9 @@ public class GridRenderer : MonoBehaviour
         cam.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, cmdMesh );
     }
 
-    private void DrawTerrainMesh( TerrainRenderer renderer, CommandBuffer buf )
+    private void DrawTerrainMesh( CommandBuffer buf )
     {
-        Debug.Log( "Drawing Terrain " + renderer.Mat_Terrain + " with " + renderer.count + " Vertices");
-        renderer.Mat_Terrain.SetPass( 0 );
-        buf.DrawProcedural( transform.localToWorldMatrix, renderer.Mat_Terrain, -1, MeshTopology.Triangles, renderer.count, 1 );
+        grid.DrawTerrainProcedural( ref buf );
     }
 
     private void DrawBorder(CommandBuffer buf)

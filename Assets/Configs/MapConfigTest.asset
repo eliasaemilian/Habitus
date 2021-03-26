@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: MapConfigTest
   m_EditorClassIdentifier: 
   GridSize: 4
-  TileHeight: 3
-  TileThickness: 1
+  TileSize: 1
+  TileThickness: 0.5
   Mountyness: 1
+  Terrains:
+  - {fileID: 11400000, guid: e2f567490fc9cd64fb9a7895cea6bb9b, type: 2}
+  - {fileID: 11400000, guid: d08169acfb46e1c4f8ec8fce263e969d, type: 2}

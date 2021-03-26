@@ -6,7 +6,7 @@ using UnityEngine;
 [System.Serializable]
 public class Hexagon
 {
-    public Config_TerrainType Type;
+    public Config_Terrain Type;
     public Vector3 center;
 
     public GPU gpu { get { return new GPU( center, GetGPUTesselationFromType() ); } }
