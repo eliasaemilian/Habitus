@@ -9,8 +9,11 @@ using System.Runtime.InteropServices;
 [Serializable]
 public class TerrainRenderer
 {
-    private int _id;
-    public int ID { get { return _id; } }
+
+    private TerrainType _terrainType;
+    public TerrainType TerrainType { get { return _terrainType; } }
+
+    public int GetID {  get { return TerrainType.ID; } }
 
     const int NUM_THREADS = 8;
 
@@ -39,13 +42,12 @@ public class TerrainRenderer
     private Vector4 size;
 
 
-    // MAKE LIST FOR EACH TERRAIN INIT
     public TerrainRenderer( int gridSize, float tileSize, Config_Terrain config ) 
     {
+        _terrainType = new TerrainType( config );
         Mat_Terrain = config.Mat_Terrain;
         Compute_Terrain = config.Compute_Terrain;
-
-        //GridVertices = new List<GridVertex>();
+        
         Hexagons = new Hexagon[gridSize, gridSize];
         HexBuffer = new Hexagon.GPU[gridSize, gridSize];
 
@@ -75,7 +77,7 @@ public class TerrainRenderer
         //else if (tesselation.z == 1) countOutHex = Hexagons.Count * 3 * ( ( 2 * 12 ) + ( 2 * 4 ) );
         //count = countOutHex;
 
-        count = GetVertexCount(); // TODO: Fill Terrain Types for Hexagons
+        count = GetVertexCount(); 
 
         CmptBufferOut = new ComputeBuffer( count, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Default );
         CmptBufferHexagons = new ComputeBuffer( (int)(size.x * size.y), Marshal.SizeOf(typeof(Hexagon.GPU)), ComputeBufferType.Default );
@@ -118,6 +120,7 @@ public class TerrainRenderer
             }
         }
 
+        Debug.Log( "Vertex Count for Terrain " + _terrainType.ID + " was " + count );
         return count;
     }
 
@@ -136,8 +139,11 @@ public class TerrainRenderer
 
     public void AddHexagonToRenderer(int x, int y, Hexagon h)
     {
+        h.Type = TerrainType;
+
         Hexagons[x, y] = h;
         HexBuffer[x, y] = h.gpu;
+
     }
 
     public void CleanUp()

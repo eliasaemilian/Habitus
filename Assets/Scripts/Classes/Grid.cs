@@ -36,21 +36,76 @@ public class Grid
 
 
     // MESH BORDER
-    public Vector3[] VerticesSides;
-    public int[] SidesIndices;
+    private Vector3[] _borderVertices;
+    public Vector3[] BorderVertices { get { return _borderVertices; } }
+    private int[] _borderIndices;
+    public int[] BorderIndices { get { return _borderIndices; } }
 
     // TERRAIN
     [SerializeField] private TerrainRenderer[] _terrainRenderers;
 
     public Grid( Config_Map config )
     {
+        // GRID AND TILE INFORMATION
         _size = config.GridSize;
         _tileHeight = config.TileSize;
         _tileThickness = config.TileThickness;
 
-        _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
 
+        // DECLARE CENTER
+        center = new Cell();
+        center.ColRow = new Vector2Int( 0, 0 );
+        center.WorldPos = new Vector3( 0, 0, 0 );
+
+
+        // for grid raster
+        CenterPoints = new Vector3[Size * Size];
+        CellsQueued = new Cell[Size * Size];
+
+        // for grid mesh
+        Cells = new Cell[Size, Size];
+        GridPoints = new Vector3[Size, Size];
+
+        InitGridCells();
+
+        // INIT TERRAINS
+        InitTerrain( config );
+
+        // Init Hexagons with Border
+        InitHexagons();
+    }
+
+    private void InitGridCells()
+    {
+        int i = 0;
+        for ( int y = 0; y < ( Size ); y++ ) // row
+        {
+            for ( int x = 0; x < ( Size ); x++ ) // col
+            {
+                Cell c = new Cell();
+                c.ColRow = new Vector2Int( x, y );
+                c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
+                c.SetNeighbours( Size );
+
+                c.Hexagon = new Hexagon(); // TODO wat
+
+                Debug.Log( "Grid innit" );
+
+                Cells[x, y] = c;
+                GridPoints[x, y] = c.WorldPos;
+                CenterPoints[i] = c.WorldPos;
+                CellsQueued[i] = c;
+
+                i++;
+            }
+        }
+    }
+
+    private void InitTerrain( Config_Map config )
+    {
         InitTerrainRenderers( config );
+        _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
+        Debug.Log( $"TerrainTypes is {_terrainTypes.Length} long" );
     }
 
     public void InitTerrainRenderers( Config_Map config )
@@ -62,8 +117,32 @@ public class Grid
         }
     }
 
+    private void InitHexagons()
+    {
+        List<Vector3> border = new List<Vector3>();
+        for ( int i = 0; i < Cells.GetLength( 0 ); i++ )
+        {
+            for ( int j = 0; j < Cells.GetLength( 1 ); j++ )
+            {
+                Hexagon hex = new Hexagon();
+                hex.center = new Vector3( Cells[i,j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
+                AddHexagon( i, j, hex );
+                Debug.Log( $"Hex [x {i}, y{j}]   {hex.center}" );
+
+                // border.AddRange( Cells[i, j].GetBorderVerticesByNeighbour() );
+            }
+        }
+
+        //_borderVertices = border.ToArray();
+        //_borderIndices = new int[BorderVertices.Length];
+        //for ( int i = 0; i < _borderIndices.Length; i++ ) _borderIndices[i] = i;
+    }
+
+
+
     public void AddHexagon( int x, int y, Hexagon hex )
     {
+        //Debug.Log($"Hex {hex.center} added to {_terrainTypes[x, y].ID}");
         GetTerrainRendererByID( _terrainTypes[x, y].ID ).AddHexagonToRenderer( x, y, hex );
     }
 
@@ -162,10 +241,23 @@ public class Grid
     {
         for ( int i = 0; i < _terrainRenderers.Length; i++ )
         {
-            if ( _terrainRenderers[i].ID == id ) return _terrainRenderers[i];
+            if ( _terrainRenderers[i].GetID == id ) return _terrainRenderers[i];
         }
 
         Debug.LogError( $"No valid TerrainRenderer could be found for ID {id}" );
         return null;
+    }
+
+    private Vector3 GetWorldPos( Vector2 gridPos, out bool elevatedOnZ )
+    {
+        float s = 0;
+
+        if ( gridPos.x % 2 != 0 ) s = 1;
+
+        float x = center.WorldPos.x + gridPos.x * ( ( TileHeight / 2 ) + ( TileHeight / 4 ) );
+        float z = center.WorldPos.z + ( s + gridPos.y * 2 ) * ( TileWidth / 2 );
+
+        elevatedOnZ = s != 0 ? true : false;
+        return new Vector3( x, 0, z );
     }
 }

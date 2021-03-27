@@ -7,10 +7,24 @@ public static class MapGeneration
     public static TerrainType[,] GenerateTerrainTypes( Config_Map config )
     {
         TerrainType[,] tileTypes = new TerrainType[config.GridSize, config.GridSize];
+
+        FillBlank(ref tileTypes, config);
+
         if ( config.Mountyness > 0 ) ComputeMountains( config );
 
 
         return tileTypes;
+    }
+
+    private static void FillBlank( ref TerrainType[,] terrainTypes, Config_Map config )
+    {
+        for ( int i = 0; i < terrainTypes.GetLength(0); i++ )
+        {
+            for ( int j = 0; j < terrainTypes.GetLength( 1 ); j++ )
+            {
+                terrainTypes[i, j] = new TerrainType( config.Terrains[0] );
+            }
+        }
     }
 
     private static void ComputeMountains( Config_Map MapConfig )

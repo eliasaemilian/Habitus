@@ -11,7 +11,7 @@ public class Cell
     public bool ElevatedOnZ;
     public Vector3[] Verts;
 
-    public Hexagon Tile;
+    public Hexagon Hexagon;
     public Vector2Int[] Neighbours;
     public bool[] IsConnected;
 
@@ -109,7 +109,7 @@ public class Cell
         }
     }
 
-    public Vector3[] GetVertsByNeighbours() //SIDES
+    public Vector3[] GetBorderVerticesByNeighbour() 
     {
         List<Vector3> verts = new List<Vector3>();        
         if ( !IsConnected[2] ) verts.AddRange( new Vector3[6] { HVerts[HIndicesSides[0]], HVerts[HIndicesSides[1]], HVerts[HIndicesSides[2]], HVerts[HIndicesSides[3]], HVerts[HIndicesSides[4]], HVerts[HIndicesSides[5]] } );
@@ -131,6 +131,150 @@ public class Cell
 
         return verts.ToArray();
     }
+
+    private void InitSideVertices()
+    {
+        Vector3[] verts = new Vector3[24 + 2];
+        int[] indices = new int[( 3 * 24 ) + 36];
+
+
+        int c = 0;
+
+        // sides
+
+        // vertices
+        //for ( int i = 0; i < oVerts.Length; i++ )
+        //{
+        //    verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+        //    verts[c + 1] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+        //    c += 2;
+        //}
+        //c = 14;
+        //for ( int i = 0; i < oVerts.Length; i++ )
+        //{
+        //    verts[c] = oVerts[i];
+        //    verts[c + 1] = oVerts[i];
+        //    c += 2;
+        //}
+
+
+        // indices
+        for ( int i = 0; i < 5; i++ )
+        {
+            indices[c] = 15 + ( i * 2 );
+            indices[c + 1] = ( i * 2 ) + 2;
+            indices[c + 2] = 15 + ( i * 2 ) + 2;
+
+            indices[c + 3] = ( i * 2 ) + 2;
+            indices[c + 4] = ( i * 2 ) + 4;
+            indices[c + 5] = 15 + ( i * 2 ) + 2;
+
+            c += 6;
+        }
+
+        indices[c] = 12;
+        indices[c + 1] = 15;
+        indices[c + 2] = 25;
+
+        indices[c + 3] = 15;
+        indices[c + 4] = 12;
+        indices[c + 5] = 2;
+
+
+    }
+
+    private Vector3[] GenHexagonMeshInfo( Cell cell, Vector3 center, Vector3[] oVerts ) // TODO: REFACTOR
+    {
+        // verts
+        Vector3[] verts = new Vector3[24 + 2];
+        int[] otherIndices = new int[( 3 * 24 ) + 36];
+        int[] topPlane = new int[3 * 12];
+        int c = 1;
+      //  Vector3 cTop = new Vector3( center.x, center.y + Grid.TileThickness, center.z ); // index 13
+        Vector3 cBot = center; // index 0
+        verts[0] = cBot;
+ //       verts[13] = cTop;
+
+   //     cell.Center = cTop;
+
+
+        for ( int i = 0; i < oVerts.Length; i++ )
+        {
+            verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+            verts[c + 1] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+            c += 2;
+        }
+        c = 14;
+        for ( int i = 0; i < oVerts.Length; i++ )
+        {
+            verts[c] = oVerts[i];
+            verts[c + 1] = oVerts[i];
+            c += 2;
+        }
+
+
+        // indices
+        c = 0;
+
+        // sides
+        for ( int i = 0; i < 5; i++ )
+        {
+            otherIndices[c] = 15 + ( i * 2 );
+            otherIndices[c + 1] = ( i * 2 ) + 2;
+            otherIndices[c + 2] = 15 + ( i * 2 ) + 2;
+
+            otherIndices[c + 3] = ( i * 2 ) + 2;
+            otherIndices[c + 4] = ( i * 2 ) + 4;
+            otherIndices[c + 5] = 15 + ( i * 2 ) + 2;
+
+            c += 6;
+        }
+
+        otherIndices[c] = 12;
+        otherIndices[c + 1] = 15;
+        otherIndices[c + 2] = 25;
+
+        otherIndices[c + 3] = 15;
+        otherIndices[c + 4] = 12;
+        otherIndices[c + 5] = 2;
+
+
+        c += 6;
+        // bottom hex plane
+        for ( int i = 1; i < 11; i += 2 )
+        {
+            otherIndices[c] = 0;
+            otherIndices[c + 1] = i + 2;
+            otherIndices[c + 2] = i;
+            c += 3;
+        }
+        otherIndices[c] = 0;
+        otherIndices[c + 1] = 1;
+        otherIndices[c + 2] = 11;
+
+
+
+        // top hex plane
+        c = 0;
+        for ( int i = 14; i < 24; i += 2 )
+        {
+            topPlane[c] = i;
+            topPlane[c + 1] = i + 2;
+            topPlane[c + 2] = 13;
+            c += 3;
+        }
+        topPlane[c] = 24;
+        topPlane[c + 1] = 14;
+        topPlane[c + 2] = 13;
+
+
+        cell.HVerts = verts;
+        cell.HIndicesTop = topPlane;
+        cell.HIndicesSides = otherIndices;
+
+        return verts;
+    }
+
 
 }
 

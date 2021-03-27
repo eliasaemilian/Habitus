@@ -6,7 +6,7 @@ using UnityEngine;
 [System.Serializable]
 public class Hexagon
 {
-    public Config_Terrain Type;
+    public TerrainType Type;
     public Vector3 center;
 
     public GPU gpu { get { return new GPU( center, GetGPUTesselationFromType() ); } }
@@ -32,10 +32,12 @@ public class Hexagon
         if ( Type.Tesselation == 4 ) return new Vector4( 0, 0, 0, 1 );
 
 #if UNITY_EDITOR
-        Debug.LogError( $"Could not generate Tesselation Factor for Hexagon Tile of Type {Type.TerrainName} at {center}" );
+        Debug.LogError( $"Could not generate Tesselation Factor for Hexagon Tile of Type {Type.ID} at {center}" );
 #endif
         return Vector4.zero;
     }
+
+
 }
 
 

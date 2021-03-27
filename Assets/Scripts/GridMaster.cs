@@ -2,39 +2,24 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridMaster : MonoBehaviour
-{
-    public static GridMaster Instance;
-
-    public Grid Grid;
-
-    public Vector3[] TestVerts;
-    public int[] TestIndices;
-
+public class GridMaster : InstantiatedGridComponent
+{  
     float r; float w;
 
-    public Transform debugContainer;
+    #region Ideas
 
-    [SerializeField] Config_Map _mapConfig;
+    /*
+     * Place Models on Hexagons
+     * Grid Snapping for placing models on hexagons
+     * Biome Logic: eg. Hexagons will init as lake/ water, hills etc in sensible pattern
+     * Water tiles -> rivers form from spring to edge of tiles -> fall as waterfall
+     */
 
-    void Awake()
-    {
-        if ( Instance == null ) Instance = this;
-        else Destroy( gameObject );
-
-
-        // IDEAS:
-
-        /*
-         * Place Models on Hexagons
-         * Grid Snapping for placing models on hexagons
-         * Biome Logic: eg. Hexagons will init as lake/ water, hills etc in sensible pattern
-         * Water tiles -> rivers form from spring to edge of tiles -> fall as waterfall
-         */
-    }
+    #endregion
 
 
-    private void Update()
+
+private void Update()
     {
         if ( Input.GetMouseButtonUp( 0 ) ) OnClickNeighbourDebug();
     }
@@ -48,234 +33,74 @@ public class GridMaster : MonoBehaviour
 
     public void OnClickClearGrid() => ClearGrid();
 
-    public void InitGrid( int size, Config_Terrain[,] tileTypes, float width, float height, float thickness, Config_Map configMap )
+
+    public bool GetCellOnClick(out Vector2Int hex)
     {
-        if ( Grid != null ) ClearGrid();
+        RaycastHit hit;
+        hex = new Vector2Int();
+        Ray ray = Camera.main.ScreenPointToRay( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - Grid.TileThickness ) );
+        if ( Physics.Raycast( ray, out hit ) )
+        {           
+            Vector3 p = hit.point;
 
-        Grid = new Grid( configMap );
+            float col; float row;
 
-        Grid.center = new Cell();
-        Grid.center.ColRow = new Vector2Int( 0, 0 );
-        Grid.center.WorldPos = new Vector3( 0, 0, 0 );
+            float unit = Grid.TileWidth + ( Grid.TileWidth * .5f );
+            col = p.x / unit;
+            col *= 2;
 
-        // for grid raster
-        Grid.CenterPoints = new Vector3[Grid.Size * Grid.Size];
-        Grid.CellsQueued = new Cell[Grid.Size * Grid.Size];
+            // row
+            unit = Grid.TileHeight;
+            row = p.z / unit;
 
-        // for grid mesh
-        Grid.Cells = new Cell[Grid.Size, Grid.Size];
-        Grid.GridPoints = new Vector3[Grid.Size , Grid.Size];
-        //  Grid.TileTypes = tileTypes;
-
-        //
-        Grid.DebugWorldMatrix = transform.localToWorldMatrix;
+            int tC = Mathf.RoundToInt( col );
+            int tR = Mathf.RoundToInt( row );
 
 
-        int i = 0;
-        for ( int y = 0; y < ( Grid.Size ); y++ ) // row
+            Vector2 pos = new Vector2( p.x, p.z );
+
+            // Search for the nearest hexagon
+            float minimum = 2 * Grid.TileWidth;  
+            for ( int x = tC - 1; x <= tC + 1; ++x )
+                for ( int y = tR - 1; y <= tR + 1; ++y )
+                {
+                    if ( x < 0 || x >= Grid.Size || y < 0 || y >= Grid.Size ) continue;
+                    float dist = Vector2.Distance( new Vector2( Grid.Cells[x, y].WorldPos.x, Grid.Cells[x, y].WorldPos.z ), pos );
+                    if ( dist < minimum )
+                    {
+                        minimum = dist;
+                        hex.x = x;
+                        hex.y = y;
+                    }
+                }
+            return true;
+        }
+        return false;
+    }
+
+
+    // ------------------------------------------------------------- DEBUG FUNCTIONS ------------------------------------------------------------ //
+
+    public void OnClickNeighbourDebug()
+    {
+        if ( GetCellOnClick( out Vector2Int hex ) )
         {
-            for ( int x = 0; x < ( Grid.Size ); x++ ) // col
+
+          //  Grid.Cells[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+            Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.Size );
+            Cell[] neighbours = Grid.GetNeighbourCellsByCell( Grid.Cells[hex.x, hex.y] );
+
+            for ( int i = 0; i < neighbours.Length; i++ )
             {
-                Cell c = new Cell();
-                c.ColRow = new Vector2Int( x, y );
-                c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
-                c.SetNeighbours( Grid.Size );
-
-                c.Tile = new Hexagon();
-
-
-                //if ( Grid.TileTypes[y, x] > 0 )
-                //{
-                //    c.Tile = new Hexagon();
-                //    c.Tile.Type = Grid.TileTypes[y, x];
-                //}
-
-
-                Grid.Cells[x, y] = c;
-                Grid.GridPoints[x, y] = c.WorldPos;
-                Grid.CenterPoints[i] = c.WorldPos;
-                Grid.CellsQueued[i] = c;
-
-                i++;
+              //  neighbours[i].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.blue;
             }
         }
 
-        GenGridVertices();
-        GenerateGridMeshes();
-        InitRenderGrid();
-            
     }
 
-    private void InitRenderGrid()
-    {
-        GetComponent<GridRenderer>().Init();
-    }
-
-    private Vector3 GetWorldPos( Vector2 gridPos, out bool elevatedOnZ )
-    {
-        float s = 0;
-
-        if ( gridPos.x % 2 != 0 ) s = 1;
-
-        float x = Grid.center.WorldPos.x + gridPos.x * ( ( Grid.TileHeight / 2 ) + ( Grid.TileHeight / 4 ) );
-        float z = Grid.center.WorldPos.z + ( s + gridPos.y * 2 ) * ( Grid.TileWidth / 2 );
-
-        elevatedOnZ = s != 0 ? true : false;
-        return new Vector3( x, 0, z );
-    }
-
-
-
-    private Vector3[] GenHexagonMeshInfo( Cell cell, Vector3 center, Vector3[] oVerts )
-    {
-        // verts
-        Vector3[] verts = new Vector3[24 + 2];
-        int[] otherIndices = new int[( 3 * 24 ) + 36];
-        int[] topPlane = new int[3 * 12];
-        int c = 1;
-        Vector3 cTop = new Vector3( center.x, center.y + Grid.TileThickness, center.z ); // index 13
-        Vector3 cBot = center; // index 0
-        verts[0] = cBot;
-        verts[13] = cTop;
-
-        cell.Center = cTop;
-
-
-        for ( int i = 0; i < oVerts.Length; i++ )
-        {
-            verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
-            verts[c + 1] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
-            c += 2;
-        }
-        c = 14;
-        for ( int i = 0; i < oVerts.Length; i++ )
-        {
-            verts[c] = oVerts[i];
-            verts[c + 1] = oVerts[i];
-            c += 2;
-        }
-
-
-        // indices
-        c = 0;
-
-        // sides
-        for ( int i = 0; i < 5; i++ )
-        {
-            otherIndices[c] = 15 + ( i * 2 );
-            otherIndices[c + 1] = ( i * 2 ) + 2;
-            otherIndices[c + 2] = 15 + ( i * 2 ) + 2;
-
-            otherIndices[c + 3] = ( i * 2 ) + 2;
-            otherIndices[c + 4] = ( i * 2 ) + 4;
-            otherIndices[c + 5] = 15 + ( i * 2 ) + 2;
-
-            c += 6;
-        }
-
-        otherIndices[c] = 12;
-        otherIndices[c + 1] = 15;
-        otherIndices[c + 2] = 25;
-
-        otherIndices[c + 3] = 15;
-        otherIndices[c + 4] = 12;
-        otherIndices[c + 5] = 2;
-
-
-        c += 6;
-        // bottom hex plane
-        for ( int i = 1; i < 11; i += 2 )
-        {
-            otherIndices[c] = 0;
-            otherIndices[c + 1] = i + 2;
-            otherIndices[c + 2] = i;
-            c += 3;
-        }
-        otherIndices[c] = 0;
-        otherIndices[c + 1] = 1;
-        otherIndices[c + 2] = 11;
-
-
-
-        // top hex plane
-        c = 0;
-        for ( int i = 14; i < 24; i += 2 )
-        {
-            topPlane[c] = i;
-            topPlane[c + 1] = i + 2;
-            topPlane[c + 2] = 13;
-            c += 3;
-        }
-        topPlane[c] = 24;
-        topPlane[c + 1] = 14;
-        topPlane[c + 2] = 13;
-
-        
-        cell.HVerts = verts;
-        cell.HIndicesTop = topPlane;
-        cell.HIndicesSides = otherIndices;
-
-        return verts;
-    }
-
-    private Vector3[] GetGridSidesVerts()
-    {
-        List<Vector3> verts = new List<Vector3>();
-        for ( int i = 0; i < Grid.Cells.GetLength( 0 ); i++ )
-        {
-            for ( int j = 0; j < Grid.Cells.GetLength( 1 ); j++ )
-            {
-                verts.AddRange( Grid.Cells[i, j].GetVertsByNeighbours() );
-            }
-        }
-        return verts.ToArray();
-    }
-
-    private void GenTerrainPlane()
-    {
-        for ( int i = 0; i < Grid.Cells.GetLength( 0 ); i++ )
-        {
-            for ( int j = 0; j < Grid.Cells.GetLength( 1 ); j++ )
-            {
-                Hexagon hex = new Hexagon();
-                hex.center = Grid.Cells[i, j].Center;
-                Grid.AddHexagon( i, j, hex );
-                Debug.Log( $"Hex [x {i}, y{j}]   {hex.center}" );
-
-               // Vector3[] verts = Grid.Cells[i, j].GetTopVerts();
-               // for ( int k = 0; k < verts.Length; k++ )
-               // {
-               //     GridVertex vert = new GridVertex();
-               //     vert.vertex = verts[k];
-               ////     vert.terrainType = (int)Grid.Cells[i, j].Tile.Type;
-               //     Grid.TerrainRenderer.GridVertices.Add( vert );
-               // }
-
-
-            }
-        }
-    }
-
-    private void GenerateGridMeshes() 
-    {
-
-        GenTerrainPlane();
-
-        Vector3[] verts = GetGridSidesVerts();
-        int[] indices = new int[verts.Length];
-        for ( int i = 0; i < indices.Length; i++ ) indices[i] = i;
-
-
-        // NEW
-
-        Grid.GenerateProceduralGrid();
-
-
-        Grid.SidesIndices = indices;
-        Grid.VerticesSides = verts;
-
-    }
-
+    #region CPU ALT TODO
+    // ---------------------------------------- CPU ALT CODE ---------------------------------------- //
+    // TODO: Implement as alt if Computeshaders are not supported by gpu
     private void GenGridVertices()
     {
         if ( Grid.GridPoints.Length <= 0 ) return;
@@ -283,7 +108,7 @@ public class GridMaster : MonoBehaviour
         // vertices
         List<int> indices = new List<int>();
         List<Vector3> verts = new List<Vector3>();
-        
+
         r = Grid.TileHeight * .5f;
         w = Grid.TileWidth * .5f;
 
@@ -375,51 +200,97 @@ public class GridMaster : MonoBehaviour
         }
 
     }
-
-    public bool GetCellOnClick(out Vector2Int hex)
+    private Vector3[] GenHexagonMeshInfo( Cell cell, Vector3 center, Vector3[] oVerts )
     {
-        RaycastHit hit;
-        hex = new Vector2Int();
-        Ray ray = Camera.main.ScreenPointToRay( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - Grid.TileThickness ) );
-        if ( Physics.Raycast( ray, out hit ) )
-        {           
-            Vector3 p = hit.point;
+        // verts
+        Vector3[] verts = new Vector3[24 + 2];
+        int[] otherIndices = new int[( 3 * 24 ) + 36];
+        int[] topPlane = new int[3 * 12];
+        int c = 1;
+        Vector3 cTop = new Vector3( center.x, center.y + Grid.TileThickness, center.z ); // index 13
+        Vector3 cBot = center; // index 0
+        verts[0] = cBot;
+        verts[13] = cTop;
 
-            float col; float row;
-
-            float unit = Grid.TileWidth + ( Grid.TileWidth * .5f );
-            col = p.x / unit;
-            col *= 2;
-
-            // row
-            unit = Grid.TileHeight;
-            row = p.z / unit;
-
-            int tC = Mathf.RoundToInt( col );
-            int tR = Mathf.RoundToInt( row );
+        cell.Center = cTop;
 
 
-            Vector2 pos = new Vector2( p.x, p.z );
-
-            // Search for the nearest hexagon
-            float minimum = 2 * Grid.TileWidth;  
-            for ( int x = tC - 1; x <= tC + 1; ++x )
-                for ( int y = tR - 1; y <= tR + 1; ++y )
-                {
-                    if ( x < 0 || x >= Grid.Size || y < 0 || y >= Grid.Size ) continue;
-                    float dist = Vector2.Distance( new Vector2( Grid.Cells[x, y].WorldPos.x, Grid.Cells[x, y].WorldPos.z ), pos );
-                    if ( dist < minimum )
-                    {
-                        minimum = dist;
-                        hex.x = x;
-                        hex.y = y;
-                    }
-                }
-            return true;
+        for ( int i = 0; i < oVerts.Length; i++ )
+        {
+            verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+            verts[c + 1] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+            c += 2;
         }
-        return false;
-    }
+        c = 14;
+        for ( int i = 0; i < oVerts.Length; i++ )
+        {
+            verts[c] = oVerts[i];
+            verts[c + 1] = oVerts[i];
+            c += 2;
+        }
 
+
+        // indices
+        c = 0;
+
+        // sides
+        for ( int i = 0; i < 5; i++ )
+        {
+            otherIndices[c] = 15 + ( i * 2 );
+            otherIndices[c + 1] = ( i * 2 ) + 2;
+            otherIndices[c + 2] = 15 + ( i * 2 ) + 2;
+
+            otherIndices[c + 3] = ( i * 2 ) + 2;
+            otherIndices[c + 4] = ( i * 2 ) + 4;
+            otherIndices[c + 5] = 15 + ( i * 2 ) + 2;
+
+            c += 6;
+        }
+
+        otherIndices[c] = 12;
+        otherIndices[c + 1] = 15;
+        otherIndices[c + 2] = 25;
+
+        otherIndices[c + 3] = 15;
+        otherIndices[c + 4] = 12;
+        otherIndices[c + 5] = 2;
+
+
+        c += 6;
+        // bottom hex plane
+        for ( int i = 1; i < 11; i += 2 )
+        {
+            otherIndices[c] = 0;
+            otherIndices[c + 1] = i + 2;
+            otherIndices[c + 2] = i;
+            c += 3;
+        }
+        otherIndices[c] = 0;
+        otherIndices[c + 1] = 1;
+        otherIndices[c + 2] = 11;
+
+
+
+        // top hex plane
+        c = 0;
+        for ( int i = 14; i < 24; i += 2 )
+        {
+            topPlane[c] = i;
+            topPlane[c + 1] = i + 2;
+            topPlane[c + 2] = 13;
+            c += 3;
+        }
+        topPlane[c] = 24;
+        topPlane[c + 1] = 14;
+        topPlane[c + 2] = 13;
+
+
+        cell.HVerts = verts;
+        cell.HIndicesTop = topPlane;
+        cell.HIndicesSides = otherIndices;
+
+        return verts;
+    }
     private List<int> CalcIndicesGridPoints( Cell cell )
     {
         List<int> indices = new List<int>();
@@ -636,25 +507,6 @@ public class GridMaster : MonoBehaviour
         return indices;
     }
 
-    // ------------------------------------------------------------- DEBUG FUNCTIONS ------------------------------------------------------------ //
-
-    public void OnClickNeighbourDebug()
-    {
-        if ( GetCellOnClick( out Vector2Int hex ) )
-        {
-
-          //  Grid.Cells[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
-            Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.Size );
-            Cell[] neighbours = Grid.GetNeighbourCellsByCell( Grid.Cells[hex.x, hex.y] );
-
-            for ( int i = 0; i < neighbours.Length; i++ )
-            {
-              //  neighbours[i].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.blue;
-            }
-        }
-
-    }
-
-
-
+    // ---- END CPU ALT CODE
+    #endregion
 }
