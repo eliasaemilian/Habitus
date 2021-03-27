@@ -17,7 +17,7 @@ public struct GridVertex
 [RequireComponent (typeof(MeshRenderer))] 
 public class GridRenderer : InstantiatedGridComponent
 {
-    private ComputeBuffer gridVertBuffer, sidesBuffer, topBuffer;
+    private ComputeBuffer gridVertBuffer, sidesBuffer;
     [SerializeField] private Material Mat_Raster;
     [SerializeField] private Material Mat_GridBorder;
 
@@ -84,7 +84,6 @@ public class GridRenderer : InstantiatedGridComponent
     {       
         if ( gridVertBuffer != null ) gridVertBuffer.Dispose();
         if ( sidesBuffer != null ) sidesBuffer.Dispose();
-        if ( topBuffer != null ) topBuffer.Dispose();
 
         Grid.CleanUp();
        // grid.TestTerrainMountain.Cleanup();
@@ -154,7 +153,6 @@ public class GridRenderer : InstantiatedGridComponent
         // Draw Terrain
         
         DrawTerrainMesh( cmdMesh );
-       // DrawTerrainMesh( grid.TestTerrainMountain, cmdMesh );
 
         // Draw Border
        // DrawBorder( cmdMesh );

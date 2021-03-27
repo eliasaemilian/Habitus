@@ -25,7 +25,7 @@ public class InstantiatedGridComponent : InstantiatedComponent
         if ( param as Grid == null )
         {
 #if UNITY_EDITOR
-            Debug.LogError( $"Invalid Parameter was passed to {this} on Instantiation" );
+            Debug.LogError( $"Invalid Parameter {param} was passed to {this} on Instantiation" );
 #endif
         }
         else

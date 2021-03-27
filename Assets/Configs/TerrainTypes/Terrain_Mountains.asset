@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Config_TileType
   TerrainName: Mountains
   ID: 1
-  Tesselation: 2
+  Tesselation: 0
   Mat_Terrain: {fileID: 2100000, guid: 840e5375e01916a499010ac66164060a, type: 2}
-  Compute_Terrain: {fileID: 7200000, guid: 1fae6e84485b8084a934caa7e9b5dfc3, type: 3}
+  Compute_Terrain: {fileID: 7200000, guid: 92244443cfbdd2e4aa91f8651344de5d, type: 3}

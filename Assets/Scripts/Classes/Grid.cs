@@ -109,8 +109,8 @@ public class Grid
     {
         List<TerrainRenderer> terrainRenderers = new List<TerrainRenderer>();
 
-        if (config.BlankTerrain != null ) terrainRenderers.Add( new TerrainRenderer( config.GridSize, config.TileSize, config.BlankTerrain ) );
-        if (config.MountainTerrain != null ) terrainRenderers.Add( new TerrainRenderer( config.GridSize, config.TileSize, config.MountainTerrain ) );
+        if (config.BlankTerrain != null ) terrainRenderers.Add( new TerrainRenderer( Size, TileHeight, TileWidth, config.BlankTerrain ) );
+        if (config.MountainTerrain != null ) terrainRenderers.Add( new TerrainRenderer( Size, TileHeight, TileWidth, config.MountainTerrain ) );
 
         _terrainRenderers = terrainRenderers.ToArray();
     }
@@ -227,10 +227,10 @@ public class Grid
 
         for ( int i = 0; i < _terrainRenderers.Length; i++ )
         {
-            _terrainRenderers[i].Mat_Terrain.SetPass( 0 );
-            buf.DrawProcedural( DebugWorldMatrix, _terrainRenderers[i].Mat_Terrain, -1, MeshTopology.Triangles, _terrainRenderers[i].count, 1 );
+            _terrainRenderers[i].MatTerrain.SetPass( 0 );
+            buf.DrawProcedural( DebugWorldMatrix, _terrainRenderers[i].MatTerrain, -1, MeshTopology.Triangles, _terrainRenderers[i].VerticesCount, 1 );
 
-            Debug.Log( "Drawing Terrain " + _terrainRenderers[i].Mat_Terrain + " with " + _terrainRenderers[i].count + " Vertices" );
+            Debug.Log( "Drawing Terrain " + _terrainRenderers[i].MatTerrain + " with " + _terrainRenderers[i].VerticesCount + " Vertices" );
         }
     }
 

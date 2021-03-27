@@ -8,7 +8,7 @@ public static class MapGeneration
     {
         TerrainType[,] tileTypes = CreateNewBlankTerrain( config );
 
-     //   if ( config.Mountyness > 0 ) ComputeMountains( config );
+        if ( config.Mountyness > 0 ) ComputeMountains( config, ref tileTypes );
 
 
         return tileTypes;
@@ -26,7 +26,7 @@ public static class MapGeneration
 
         TerrainType[,] types = new TerrainType[config.GridSize, config.GridSize];
 
-        for ( int i = 0; i < types.GetLength(0); i++ )
+        for ( int i = 0; i < types.GetLength( 0 ); i++ )
         {
             for ( int j = 0; j < types.GetLength( 1 ); j++ )
             {
@@ -37,22 +37,22 @@ public static class MapGeneration
         return types;
     }
 
-    private static void ComputeMountains( Config_Map MapConfig )
+    private static void ComputeMountains( Config_Map config, ref TerrainType[,] types )
     {
         // 1st pass, set main mountain tiles
-        for ( int x = 0; x < MapConfig.GridSize; x++ )
+        for ( int x = 0; x < types.GetLength( 0 ); x++ )
         {
-            for ( int y = 0; y < MapConfig.GridSize; y++ )
+            for ( int y = 0; y < types.GetLength( 1 ); y++ )
             {
-                float px = x / (float)MapConfig.GridSize;
-                float py = y / (float)MapConfig.GridSize;
-                float prob = Mathf.PerlinNoise( px, py ) * MapConfig.Mountyness;
+                float px = x / (float)config.GridSize;
+                float py = y / (float)config.GridSize;
+                float prob = Mathf.PerlinNoise( px, py ) * config.Mountyness;
 
                 float r = Random.Range( 0f, 1f );
-                
-              //  if ( r < prob ) tileTypes[x, y] = TileType.mountain;
-              //  else tileTypes[x, y] = TileType.blank;
-               // Debug.Log( $"X: {x}, Y: {y} : Mountain Prob is {prob}" );
+
+                if ( r < prob ) types[x, y] = new TerrainType( config.MountainTerrain );
+                //  else tileTypes[x, y] = TileType.blank;
+                // Debug.Log( $"X: {x}, Y: {y} : Mountain Prob is {prob}" );
             }
         }
 

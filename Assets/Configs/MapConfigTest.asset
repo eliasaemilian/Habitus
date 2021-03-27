@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70d1f9530ef158a49a9df7ce014feaa3, type: 3}
   m_Name: MapConfigTest
   m_EditorClassIdentifier: 
+  MapName: Standart Map
   GridSize: 4
-  TileSize: 1
+  TileSize: 2
   TileThickness: 0.5
   Mountyness: 1
-  Terrains:
-  - {fileID: 11400000, guid: e2f567490fc9cd64fb9a7895cea6bb9b, type: 2}
-  - {fileID: 11400000, guid: d08169acfb46e1c4f8ec8fce263e969d, type: 2}
+  BlankTerrain: {fileID: 11400000, guid: e2f567490fc9cd64fb9a7895cea6bb9b, type: 2}
+  MountainTerrain: {fileID: 11400000, guid: d08169acfb46e1c4f8ec8fce263e969d, type: 2}

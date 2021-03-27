@@ -19,7 +19,7 @@ struct Hexagon
 
 
 StructuredBuffer<Hexagon> HexInput;
-uniform RWStructuredBuffer<Vertex> Vertices; // OUT
+RWStructuredBuffer<Vertex> Vertices; // OUT
 //ConsumeStructuredBuffer<uint> ActiveIDs;
 AppendStructuredBuffer<Vertex> ActiveVerticesOut;
 
@@ -152,13 +152,14 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
      // Factor 0
     for ( uint j = 0; j < HexInput[hid].tesselation.x; j++ ) // 18 Verts
     {      
-        n = hid * 18;
+        n =  hid * 18;
 
         for ( uint k = 0; k < 5; k++ )
         {
             AddTriangle( n, verts[k], verts[k + 1], c );
         }
         AddTriangle( n, verts[0], c, verts[5] );
+        
     }
         
   
