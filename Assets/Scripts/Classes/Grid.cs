@@ -89,8 +89,6 @@ public class Grid
 
                 c.Hexagon = new Hexagon(); // TODO wat
 
-                Debug.Log( "Grid innit" );
-
                 Cells[x, y] = c;
                 GridPoints[x, y] = c.WorldPos;
                 CenterPoints[i] = c.WorldPos;
@@ -105,16 +103,16 @@ public class Grid
     {
         InitTerrainRenderers( config );
         _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
-        Debug.Log( $"TerrainTypes is {_terrainTypes.Length} long" );
     }
 
     public void InitTerrainRenderers( Config_Map config )
     {
-        _terrainRenderers = new TerrainRenderer[config.Terrains.Count];
-        for ( int i = 0; i < config.Terrains.Count; i++ )
-        {
-            _terrainRenderers[i] = new TerrainRenderer( config.GridSize , config.TileSize, config.Terrains[i] );
-        }
+        List<TerrainRenderer> terrainRenderers = new List<TerrainRenderer>();
+
+        if (config.BlankTerrain != null ) terrainRenderers.Add( new TerrainRenderer( config.GridSize, config.TileSize, config.BlankTerrain ) );
+        if (config.MountainTerrain != null ) terrainRenderers.Add( new TerrainRenderer( config.GridSize, config.TileSize, config.MountainTerrain ) );
+
+        _terrainRenderers = terrainRenderers.ToArray();
     }
 
     private void InitHexagons()
@@ -127,7 +125,6 @@ public class Grid
                 Hexagon hex = new Hexagon();
                 hex.center = new Vector3( Cells[i,j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
                 AddHexagon( i, j, hex );
-                Debug.Log( $"Hex [x {i}, y{j}]   {hex.center}" );
 
                 // border.AddRange( Cells[i, j].GetBorderVerticesByNeighbour() );
             }

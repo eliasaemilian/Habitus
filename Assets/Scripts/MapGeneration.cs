@@ -6,25 +6,35 @@ public static class MapGeneration
 {
     public static TerrainType[,] GenerateTerrainTypes( Config_Map config )
     {
-        TerrainType[,] tileTypes = new TerrainType[config.GridSize, config.GridSize];
+        TerrainType[,] tileTypes = CreateNewBlankTerrain( config );
 
-        FillBlank(ref tileTypes, config);
-
-        if ( config.Mountyness > 0 ) ComputeMountains( config );
+     //   if ( config.Mountyness > 0 ) ComputeMountains( config );
 
 
         return tileTypes;
     }
 
-    private static void FillBlank( ref TerrainType[,] terrainTypes, Config_Map config )
+    private static TerrainType[,] CreateNewBlankTerrain( Config_Map config )
     {
-        for ( int i = 0; i < terrainTypes.GetLength(0); i++ )
+        if (config.BlankTerrain == null)
         {
-            for ( int j = 0; j < terrainTypes.GetLength( 1 ); j++ )
+#if UNITY_EDITOR
+            Debug.LogError( $"At least 1 Blank Terrain Type needs to be added to any Map Config. Please add a Blank Terrain to {config.MapName}" );
+#endif
+            return null;
+        }
+
+        TerrainType[,] types = new TerrainType[config.GridSize, config.GridSize];
+
+        for ( int i = 0; i < types.GetLength(0); i++ )
+        {
+            for ( int j = 0; j < types.GetLength( 1 ); j++ )
             {
-                terrainTypes[i, j] = new TerrainType( config.Terrains[0] );
+                types[i, j] = new TerrainType( config.BlankTerrain );
             }
         }
+
+        return types;
     }
 
     private static void ComputeMountains( Config_Map MapConfig )

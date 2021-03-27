@@ -26,7 +26,6 @@ public class TerrainRenderer
   //  public int IndicesTotal { get {  return  GridVertices.Count; } }
 
    // public List<GridVertex> GridVertices;
-    // public List<Hexagon> Hexagons;
 
     public Hexagon[,] Hexagons;
     public int HexagonCount { get { return Hexagons.Length; } }
@@ -65,23 +64,19 @@ public class TerrainRenderer
         if ( CmptBuffer != null ) CmptBuffer.Dispose();
         if ( CmptBufferOut != null ) CmptBufferOut.Dispose();
 
-        int countOutHex = 1;
-
-
 
         // get count by tesselation
         Vector4 tesselation = new Vector4( 0, 0, 1, 0 );
 
-        //if ( tesselation.x == 1 ) countOutHex = Hexagons.Count * 6 * 3;
-        //else if (tesselation.y == 1) countOutHex = Hexagons.Count * 3 * ( ( 2 * 4 ) + ( 2 * 2 ) );
-        //else if (tesselation.z == 1) countOutHex = Hexagons.Count * 3 * ( ( 2 * 12 ) + ( 2 * 4 ) );
-        //count = countOutHex;
 
-        count = GetVertexCount(); 
+
+        count = GetVertexCount();
+
+        if ( count <= 0 ) return;
 
         CmptBufferOut = new ComputeBuffer( count, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Default );
         CmptBufferHexagons = new ComputeBuffer( (int)(size.x * size.y), Marshal.SizeOf(typeof(Hexagon.GPU)), ComputeBufferType.Default );
-        ComputeBuffer activeVertsOut = new ComputeBuffer( countOutHex, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Default );
+        ComputeBuffer activeVertsOut = new ComputeBuffer( count, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Default );
 
         CmptBufferHexagons.SetData( HexBuffer );
 
@@ -114,9 +109,10 @@ public class TerrainRenderer
             for ( int j = 0; j < HexBuffer.GetLength( 1 ); j++ )
             {
                 Vector4 tesselation = ( HexBuffer[i, j].tesselation );
-                if ( tesselation.x == 1 ) count += HexagonCount * 6 * 3;
-                else if ( tesselation.y == 1 ) count += HexagonCount * 3 * ( ( 2 * 4 ) + ( 2 * 2 ) );
-                else if ( tesselation.z == 1 ) count += HexagonCount * 3 * ( ( 2 * 12 ) + ( 2 * 4 ) );
+                if ( tesselation.x == 1 ) count += 6 * 3;
+                else if ( tesselation.y == 1 ) count += 3 * ( ( 2 * 4 ) + ( 2 * 2 ) );
+                else if ( tesselation.z == 1 ) count += 3 * ( ( 2 * 12 ) + ( 2 * 4 ) );
+                
             }
         }
 
@@ -143,13 +139,10 @@ public class TerrainRenderer
 
         Hexagons[x, y] = h;
         HexBuffer[x, y] = h.gpu;
-
     }
 
     public void CleanUp()
     {
         if ( CmptBuffer != null ) CmptBuffer.Dispose();
-        //GridVertices.Clear();
-
     }
 }

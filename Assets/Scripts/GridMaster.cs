@@ -6,6 +6,9 @@ public class GridMaster : InstantiatedGridComponent
 {  
     float r; float w;
 
+
+    public Grid DebugGridView;
+
     #region Ideas
 
     /*
@@ -22,6 +25,7 @@ public class GridMaster : InstantiatedGridComponent
 private void Update()
     {
         if ( Input.GetMouseButtonUp( 0 ) ) OnClickNeighbourDebug();
+        DebugGridView = Grid;
     }
     private void ClearGrid()
     {

@@ -7,7 +7,7 @@ public class Config_Terrain : ScriptableObject
 {
     public string TerrainName;
     public int ID;
-    [Range( 1, 4 )] public int Tesselation;
+    [Range( 0, 3 )] public int Tesselation;
 
     //undefined, // 0
     //blank, // 1

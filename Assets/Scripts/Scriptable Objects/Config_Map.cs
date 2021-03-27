@@ -8,6 +8,8 @@ using UnityEngine;
 [CreateAssetMenu( fileName = "MapConfig", menuName ="Configs/Map")]
 public class Config_Map : ScriptableObject
 {
+    public string MapName;
+
     [Header( "Grid Info" )]
     public int GridSize;
     public float TileSize;
@@ -15,5 +17,8 @@ public class Config_Map : ScriptableObject
 
     [Header ( "Terrain Attributes" )]
     [Range(0, 1)] public float Mountyness;
-    public List<Config_Terrain> Terrains;
+
+    [Header ( "Terrains" )]
+    public Config_Terrain BlankTerrain;
+    public Config_Terrain MountainTerrain;
 }

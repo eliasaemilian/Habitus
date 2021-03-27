@@ -29,13 +29,6 @@ float4 _Size;
 #define HEX_RADIUS      ( _Size.z ) 
 #define HEX_WIDTH       ( _Size.w ) 
 
-float4 _Tesselation; 
-#define TESSELATION_FACTOR_0    ( (uint)_Tesselation.x)
-#define TESSELATION_FACTOR_1    ( (uint)_Tesselation.y)
-#define TESSELATION_FACTOR_2    ( (uint)_Tesselation.z)
-#define TESSELATION_FACTOR_3    ( (uint)_Tesselation.w)
-
-
 
 
 void AddTriangle( inout uint n, float3 a, float3 b, float3 c )
@@ -157,7 +150,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         // Hex Indices
         
      // Factor 0
-    for ( uint j = 0; j < TESSELATION_FACTOR_0; j++ ) // 18 Verts
+    for ( uint j = 0; j < HexInput[hid].tesselation.x; j++ ) // 18 Verts
     {      
         n = hid * 18;
 
@@ -173,7 +166,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     // Factor 1
     
 
-    for ( j = 0; j < TESSELATION_FACTOR_1; j++ )
+    for ( j = 0; j < HexInput[hid].tesselation.y; j++ )
     {
         n = hid * 36 ; 
         
@@ -200,7 +193,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
             float3( c.x + hhr, c.y, c.z + hhw ), //j -> 7                           
     };
         
-    for ( j = 0; j < TESSELATION_FACTOR_2; j++ )
+    for ( j = 0; j < HexInput[hid].tesselation.z; j++ )
     {
         n = hid * 96;
         
@@ -212,4 +205,4 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     }
      
     
-    }
+}
