@@ -11,27 +11,23 @@ public class TerrainRenderer
 {
     const int NUM_THREADS = 8;
 
-
     private Material _matTerrain;
     public Material MatTerrain { get { return _matTerrain; } }
 
     private ComputeShader _computeTerrainShader;
     public ComputeShader ComputeTerrainShader { get { return _computeTerrainShader; } }
-
-
     public int HexagonCount { get { return _hexagons.Length; } }
+    public int VerticesCount { get { return GetVertexCount(); } }
 
     private Hexagon[,] _hexagons;
     private Hexagon.GPU[,] _hexBuffer;
 
     private ComputeBuffer _cmptBufferOut;
     private ComputeBuffer _cmptBufferHexagons;
-
-    public int VerticesCount { get { return GetVertexCount(); } }
-
-
     private Vector4 _size;
 
+
+    public Hexagon.GPU[] DEBUGHEX;
 
     public TerrainRenderer( int gridSize, float tileHeight, float tileWidth, Config_Terrain config ) 
     {
@@ -45,20 +41,6 @@ public class TerrainRenderer
 
     }
 
-    public void PrepareHexBufferForRendering()
-    {
-        int count0 = _hexBuffer.GetLength(0);
-        int count1 = _hexBuffer.GetLength(1);
-
-        var tmp = _hexBuffer;
-        _hexBuffer = new Hexagon.GPU[count0, count1];
-
-
-        for ( int i = 0; i < count0; i++ )
-        {
-
-        }
-    }
 
     public void SetComputeBuffer()
     {
@@ -73,6 +55,7 @@ public class TerrainRenderer
         _cmptBufferHexagons.SetData( _hexBuffer );
 
         int kernelHandle = ComputeTerrainShader.FindKernel( "GenGridVertices" );
+        int kernelHandleBorder = ComputeTerrainShader.FindKernel( "GenMeshBorder" );
 
         ComputeTerrainShader.SetBuffer( kernelHandle, "HexInput", _cmptBufferHexagons );
         ComputeTerrainShader.SetBuffer( kernelHandle, "Vertices", _cmptBufferOut );
@@ -81,6 +64,25 @@ public class TerrainRenderer
         ComputeTerrainShader.SetVector( "_Size", _size );
 
         ComputeTerrainShader.Dispatch( kernelHandle, ( (int)_size.x * (int)_size.y ) / NUM_THREADS, ( (int)_size.x * (int)_size.y ) / NUM_THREADS, 1 );
+
+        // BORDER MESH
+        ComputeTerrainShader.SetBuffer( kernelHandleBorder, "HexInput", _cmptBufferHexagons );
+        ComputeTerrainShader.Dispatch( kernelHandleBorder, ( (int)_size.x * (int)_size.y ) / NUM_THREADS, ( (int)_size.x * (int)_size.y ) / NUM_THREADS, 1 );
+
+
+        // 
+        Hexagon.GPU[,] debugOut = new Hexagon.GPU[(int)_size.x, (int)_size.y];
+        _cmptBufferHexagons.GetData( debugOut );
+        List<Hexagon.GPU> hex = new List<Hexagon.GPU>();
+        for ( int i = 0; i < debugOut.GetLength(0); i++ )
+        {
+            for ( int j = 0; j < debugOut.GetLength( 1 ); j++ )
+            {
+                hex.Add( _hexBuffer[i, j] );
+                Debug.Log( "HEX RESULT " + debugOut[i, j].topvert0 );
+            }
+        }
+        DEBUGHEX = hex.ToArray();
 
         MatTerrain.SetBuffer( "Vertices", _cmptBufferOut );
 
@@ -104,7 +106,6 @@ public class TerrainRenderer
 
         return count;
     }
-
 
 
 

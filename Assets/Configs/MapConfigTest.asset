@@ -16,6 +16,6 @@ MonoBehaviour:
   GridSize: 4
   TileSize: 2
   TileThickness: 0.5
-  Mountyness: 1
+  Mountyness: 0.5
   BlankTerrain: {fileID: 11400000, guid: e2f567490fc9cd64fb9a7895cea6bb9b, type: 2}
   MountainTerrain: {fileID: 11400000, guid: d08169acfb46e1c4f8ec8fce263e969d, type: 2}

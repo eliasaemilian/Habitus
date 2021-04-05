@@ -35,13 +35,13 @@ public class GridRenderer : InstantiatedGridComponent
 
     protected override void Init()
     {
-      //  if ( FindObjectOfType<CameraController>() != null ) CameraController.CameraUpdate.AddListener( RefreshGridLines );
+        //  if ( FindObjectOfType<CameraController>() != null ) CameraController.CameraUpdate.AddListener( RefreshGridLines );
 
         // Toggle Grid
-     //   if ( FindObjectOfType<InterfaceListener>() != null ) InterfaceListener.ToggleGrid.AddListener( OnToggleGrid );
+        //   if ( FindObjectOfType<InterfaceListener>() != null ) InterfaceListener.ToggleGrid.AddListener( OnToggleGrid );
 
-      //  InitRasterBuffer();
-      //  InitGridBorderBuffer();
+        //  InitRasterBuffer();
+        InitGridBorderBuffer();
     }
 
 
@@ -60,9 +60,8 @@ public class GridRenderer : InstantiatedGridComponent
 
     private void InitGridBorderBuffer()
     {
-        indicesBorder = Grid.BorderVertices.Length;
-
         if ( indicesBorder <= 0 ) return;
+        indicesBorder = Grid.BorderVertices.Length;
 
         if ( sidesBuffer != null ) sidesBuffer.Dispose();
         sidesBuffer = new ComputeBuffer( indicesBorder, sizeof( float ) * 3, ComputeBufferType.Default );
@@ -83,7 +82,6 @@ public class GridRenderer : InstantiatedGridComponent
         if ( sidesBuffer != null ) sidesBuffer.Dispose();
 
         Grid.CleanUp();
-       // grid.TestTerrainMountain.Cleanup();
 
         foreach ( var camera in camsRaster )
         {
@@ -152,7 +150,7 @@ public class GridRenderer : InstantiatedGridComponent
         DrawTerrainMesh( cmdMesh );
 
         // Draw Border
-       // DrawBorder( cmdMesh );
+        //DrawBorder( cmdMesh );
 
         // Add Cmd Buffer
         cam.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, cmdMesh );

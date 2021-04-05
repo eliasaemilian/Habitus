@@ -121,13 +121,13 @@ public class Grid
                 hex.Center = new Vector3( Cells[i,j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
                 AddHexagon( i, j, hex );
 
-                // border.AddRange( Cells[i, j].GetBorderVerticesByNeighbour() );
+               // border.AddRange( Cells[i, j].GetBorderVerticesByNeighbour() );
             }
         }
 
-        //_borderVertices = border.ToArray();
-        //_borderIndices = new int[BorderVertices.Length];
-        //for ( int i = 0; i < _borderIndices.Length; i++ ) _borderIndices[i] = i;
+      //  _borderVertices = border.ToArray();
+      //  _borderIndices = new int[BorderVertices.Length];
+      //  for ( int i = 0; i < _borderIndices.Length; i++ ) _borderIndices[i] = i;
     }
 
 

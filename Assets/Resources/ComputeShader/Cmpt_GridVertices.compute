@@ -1,4 +1,5 @@
 ﻿#pragma kernel GenGridVertices
+#pragma kernel GenMeshBorder
 #define NUM_THREADS  ( 8 )
 
 struct Vertex
@@ -10,12 +11,13 @@ struct Hexagon
 {
     float4 center; //xyz = center pos, w = terrain type
     float4 tesselation;
+    float3 topverts[6];
 };
 
 
 
 
-StructuredBuffer<Hexagon> HexInput;
+RWStructuredBuffer<Hexagon> HexInput;
 RWStructuredBuffer<Vertex> Vertices; // OUT
 //ConsumeStructuredBuffer<uint> ActiveIDs;
 AppendStructuredBuffer<Vertex> ActiveVerticesOut;
@@ -109,14 +111,10 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     float hw = w * .5;
     float hhw = hw * .5;
             
-    uint hid = id.x + id.y * GRID_SIZE_X;
-    
-    if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y )
+    uint hid = id.x + id.y * GRID_SIZE_X;    
+    if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y || hid > GRID_SIZE_X * GRID_SIZE_Y )
         return;
    
-    if ( hid > GRID_SIZE_X * GRID_SIZE_Y )
-        return;
-    
            
     float3 c = HexInput[hid].center.xyz;
     float type = HexInput[hid].center.w;
@@ -131,8 +129,8 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         float3( c.x - r, c.y, c.z ),
         float3( c.x - hr, c.y, c.z + w ),
         float3( c.x + hr, c.y, c.z + w )
-    };
-        
+    };     
+    HexInput[hid].topverts = verts;
         
     // Tesselation Factor 1 
     float3 t1[4] =
@@ -158,12 +156,9 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         AddTriangle( n, type, verts[0], c, verts[5] );
         
     }
-        
-  
+         
     
     // Factor 1
-    
-
     for ( j = 0; j < HexInput[hid].tesselation.y; j++ )
     {
         n = hid * 36;
@@ -177,8 +172,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         AddTessTopHalf( n, type, t1[3], verts[5], c, verts[4] );
     }
 
-    //Factor 2
-   
+    //Factor 2  
     float3 t2[8] =
     {
         float3( t1[0].x + hhr, c.y, t1[0].z - hhw ), //a -> 0
@@ -203,4 +197,44 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     }
      
     
+}
+
+[numthreads( NUM_THREADS, NUM_THREADS, 1 )]
+void GenMeshBorder( uint3 id : SV_DispatchThreadID )
+{
+    uint hid = id.x + id.y * GRID_SIZE_X;
+    if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y || hid > GRID_SIZE_X * GRID_SIZE_Y )
+        return;
+    uint indices[36];
+    uint n = 0;
+    
+    HexInput[hid].topverts[0] = float3( 20, 30, 30 );
+    
+    // gen indices
+           // sides
+    for ( uint i = 0; i < 5; i++ )
+    {
+        indices[n] = 15 + ( i * 2 );
+        indices[n + 1] = ( i * 2 ) + 2;
+        indices[n + 2] = 15 + ( i * 2 ) + 2;
+
+        indices[n + 3] = ( i * 2 ) + 2;
+        indices[n + 4] = ( i * 2 ) + 4;
+        indices[n + 5] = 15 + ( i * 2 ) + 2;
+
+        n += 6;
+    }
+
+    indices[n] = 12;
+    indices[n + 1] = 15;
+    indices[n + 2] = 25;
+
+    indices[n + 3] = 15;
+    indices[n + 4] = 12;
+    indices[n + 5] = 2;
+
+
+    n += 6;
+    
+    // fill vetices buffer with indices
 }

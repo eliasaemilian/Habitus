@@ -15,7 +15,7 @@ public class Cell
     public Vector2Int[] Neighbours;
     public bool[] IsConnected;
 
-    // HEX
+    // HEX [DEPRECATED: TO BE DESTROYED]
     public Vector3 Center;
 
     public Vector3[] HVerts;
