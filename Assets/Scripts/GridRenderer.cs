@@ -7,10 +7,7 @@ using System;
 [Serializable]
 public struct GridVertex
 {
-    public Vector3 vertex;
-    //   public int terrainType; // = TerrainType
-    public int n;
-    public int hid;
+    public Vector4 vertex;
 }
 
 

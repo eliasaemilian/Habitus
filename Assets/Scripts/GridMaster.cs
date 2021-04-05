@@ -9,18 +9,6 @@ public class GridMaster : InstantiatedGridComponent
 
     public Grid DebugGridView;
 
-    #region Ideas
-
-    /*
-     * Place Models on Hexagons
-     * Grid Snapping for placing models on hexagons
-     * Biome Logic: eg. Hexagons will init as lake/ water, hills etc in sensible pattern
-     * Terrain corresponds to Terrain of surrounding Tiles
-     * Water tiles -> rivers form from spring to edge of tiles -> fall as waterfall
-     */
-
-    #endregion
-
 
 
 private void Update()

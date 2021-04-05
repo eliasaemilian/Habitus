@@ -1,4 +1,4 @@
-﻿Shader "Terrain/Sh_TerrainMountains"
+﻿Shader "Uber/UberSh_Terrain"
 {
     Properties
     {
@@ -16,10 +16,9 @@
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
 
             #include "UnityCG.cginc"
+            #pragma target 4.0
 
             struct appdata
             {
@@ -30,8 +29,8 @@
             struct v2f
             {
                 float2 uv : TEXCOORD0;
-                UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
+                float4 debugCol : TEXCOORD1;
             };
 
             sampler2D _MainTex;
@@ -40,20 +39,23 @@
 
             struct Vertex
             {
-                float3 pos;
-                int n;
-                int hid;
-                //  int type; // = TerrainType -> float4 with 0 1 range then no branching just mltpy each texture with float x,y,z,w
+                float4 pos; // xyz pos, w = terrain type
             };
 
-            StructuredBuffer<Vertex> Vertices;
+            uniform StructuredBuffer<Vertex> Vertices;
 
-            v2f vert( uint id : SV_VertexID, appdata v )
+            v2f vert ( uint id : SV_VertexID, appdata v)
             {
                 v2f o;
-                o.vertex = UnityObjectToClipPos( float4( Vertices[id].pos, 1.0f ) );
-                o.uv = TRANSFORM_TEX( v.uv, _MainTex );
-                UNITY_TRANSFER_FOG( o, o.vertex );
+                float type = Vertices[id].pos.w;
+
+                o.vertex = UnityObjectToClipPos( float4( Vertices[id].pos.xyz, 1.0f ) );
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+
+                if (type == 0) o.debugCol = float4( 0, 1, 0, 1 );
+                else o.debugCol = float4( 1, 0, 0, 1 );
+
+
                 return o;
             }
 
@@ -61,9 +63,7 @@
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
-                // apply fog
-                UNITY_APPLY_FOG(i.fogCoord, col);
-                return float4(_Albedo.xyz, 1);
+                return i.debugCol;
             }
             ENDCG
         }

@@ -42,7 +42,7 @@ public class Grid
     public int[] BorderIndices { get { return _borderIndices; } }
 
     // TERRAIN
-    [SerializeField] private TerrainRenderer[] _terrainRenderers;
+    private TerrainRenderer _terrainRenderer;
 
     public Grid( Config_Map config )
     {
@@ -101,18 +101,13 @@ public class Grid
 
     private void InitTerrain( Config_Map config )
     {
-        InitTerrainRenderers( config );
+        InitTerrainRenderer( config );
         _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
     }
 
-    public void InitTerrainRenderers( Config_Map config )
+    public void InitTerrainRenderer( Config_Map config )
     {
-        List<TerrainRenderer> terrainRenderers = new List<TerrainRenderer>();
-
-        if (config.BlankTerrain != null ) terrainRenderers.Add( new TerrainRenderer( Size, TileHeight, TileWidth, config.BlankTerrain ) );
-        if (config.MountainTerrain != null ) terrainRenderers.Add( new TerrainRenderer( Size, TileHeight, TileWidth, config.MountainTerrain ) );
-
-        _terrainRenderers = terrainRenderers.ToArray();
+        _terrainRenderer = new TerrainRenderer( Size, TileHeight, TileWidth, config.BlankTerrain );
     }
 
     private void InitHexagons()
@@ -123,7 +118,7 @@ public class Grid
             for ( int j = 0; j < Cells.GetLength( 1 ); j++ )
             {
                 Hexagon hex = new Hexagon();
-                hex.center = new Vector3( Cells[i,j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
+                hex.Center = new Vector3( Cells[i,j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
                 AddHexagon( i, j, hex );
 
                 // border.AddRange( Cells[i, j].GetBorderVerticesByNeighbour() );
@@ -139,8 +134,8 @@ public class Grid
 
     public void AddHexagon( int x, int y, Hexagon hex )
     {
-        //Debug.Log($"Hex {hex.center} added to {_terrainTypes[x, y].ID}");
-        GetTerrainRendererByID( _terrainTypes[x, y].ID ).AddHexagonToRenderer( x, y, hex );
+        hex.ChangeTerrainType( _terrainTypes[x, y] );
+        if ( _terrainRenderer != null ) _terrainRenderer.AddHexagonToRenderer( x, y, hex );
     }
 
     //public void InitTileTypes()
@@ -169,10 +164,8 @@ public class Grid
 
     public void GenerateProceduralGrid()
     {
-        for ( int i = 0; i < _terrainRenderers.Length; i++ )
-        {
-            _terrainRenderers[i].SetComputeBuffer();
-        }
+        _terrainRenderer.SetComputeBuffer();
+
     }
 
     public Cell[] GetNeighbourCellsByCell( Cell c )
@@ -211,39 +204,19 @@ public class Grid
 
     public void CleanUp()
     {
-        if (_terrainRenderers != null)
-        {
-            for ( int i = 0; i < _terrainRenderers.Length; i++ )
-            {
-                _terrainRenderers[i].CleanUp();
-            }
-        }
-
+        if (_terrainRenderer != null ) _terrainRenderer.CleanUp();
     }
 
     public void DrawTerrainProcedural(ref UnityEngine.Rendering.CommandBuffer buf)
     {
-        if ( _terrainRenderers == null ) return;
+        if ( _terrainRenderer == null ) return;
 
-        for ( int i = 0; i < _terrainRenderers.Length; i++ )
-        {
-            _terrainRenderers[i].MatTerrain.SetPass( 0 );
-            buf.DrawProcedural( DebugWorldMatrix, _terrainRenderers[i].MatTerrain, -1, MeshTopology.Triangles, _terrainRenderers[i].VerticesCount, 1 );
+        _terrainRenderer.MatTerrain.SetPass( 0 );
+        buf.DrawProcedural( DebugWorldMatrix, _terrainRenderer.MatTerrain, -1, MeshTopology.Triangles, _terrainRenderer.VerticesCount, 1 );
 
-            Debug.Log( "Drawing Terrain " + _terrainRenderers[i].MatTerrain + " with " + _terrainRenderers[i].VerticesCount + " Vertices" );
-        }
+        Debug.Log( "Drawing Terrain " + _terrainRenderer.MatTerrain + " with " + _terrainRenderer.VerticesCount + " Vertices" );
     }
 
-    public TerrainRenderer GetTerrainRendererByID( int id )
-    {
-        for ( int i = 0; i < _terrainRenderers.Length; i++ )
-        {
-            if ( _terrainRenderers[i].GetID == id ) return _terrainRenderers[i];
-        }
-
-        Debug.LogError( $"No valid TerrainRenderer could be found for ID {id}" );
-        return null;
-    }
 
     private Vector3 GetWorldPos( Vector2 gridPos, out bool elevatedOnZ )
     {

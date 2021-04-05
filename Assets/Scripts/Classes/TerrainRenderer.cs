@@ -11,9 +11,6 @@ public class TerrainRenderer
 {
     const int NUM_THREADS = 8;
 
-    private TerrainType _terrainType;
-    public TerrainType TerrainType { get { return _terrainType; } }
-    public int GetID {  get { return TerrainType.ID; } }
 
     private Material _matTerrain;
     public Material MatTerrain { get { return _matTerrain; } }
@@ -38,7 +35,6 @@ public class TerrainRenderer
 
     public TerrainRenderer( int gridSize, float tileHeight, float tileWidth, Config_Terrain config ) 
     {
-        _terrainType = new TerrainType( config );
         _matTerrain = config.Mat_Terrain;
         _computeTerrainShader = WorkaroundInstantiateCmptShader.InstantiateComputeShader( config.Compute_Terrain ); //( Resources.Load<ComputeShader>( "ComputeShader/Cmpt_GridVertices" ) ); 
 
@@ -114,8 +110,6 @@ public class TerrainRenderer
 
     public void AddHexagonToRenderer(int x, int y, Hexagon h)
     {
-        h.Type = TerrainType;
-
         _hexagons[x, y] = h;
         _hexBuffer[x, y] = h.gpu;
     }
