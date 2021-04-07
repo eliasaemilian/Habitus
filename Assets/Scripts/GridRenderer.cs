@@ -15,8 +15,8 @@ public struct GridVertex
 public class GridRenderer : InstantiatedGridComponent
 {
     private ComputeBuffer gridVertBuffer, sidesBuffer;
-    [SerializeField] private Material Mat_Raster;
-    [SerializeField] private Material Mat_GridBorder;
+    private Material Mat_Raster;
+    private Material Mat_Border;
 
     private Dictionary<Camera, CommandBuffer> camsRaster = new Dictionary<Camera, CommandBuffer>();
     private Dictionary<Camera, CommandBuffer> camsMesh = new Dictionary<Camera, CommandBuffer>();
@@ -24,6 +24,7 @@ public class GridRenderer : InstantiatedGridComponent
     int indicesRaster, indicesBorder;
     public bool gridOff;
 
+    private ComputeShader cmpt_grid;
 
     private void OnToggleGrid()
     {
@@ -67,7 +68,7 @@ public class GridRenderer : InstantiatedGridComponent
         sidesBuffer = new ComputeBuffer( indicesBorder, sizeof( float ) * 3, ComputeBufferType.Default );
         sidesBuffer.SetData( Grid.BorderVertices );
 
-        Mat_GridBorder.SetBuffer( "VertBuffer", sidesBuffer );
+        Mat_Border.SetBuffer( "VertBuffer", sidesBuffer );
     }
 
     public void DebugReset()
@@ -163,8 +164,8 @@ public class GridRenderer : InstantiatedGridComponent
 
     private void DrawBorder(CommandBuffer buf)
     {
-        Mat_GridBorder.SetPass( 0 );
-        buf.DrawProcedural( transform.localToWorldMatrix, Mat_GridBorder, -1, MeshTopology.Triangles, indicesBorder, 1 );
+        Mat_Border.SetPass( 0 );
+        buf.DrawProcedural( transform.localToWorldMatrix, Mat_Border, -1, MeshTopology.Triangles, indicesBorder, 1 );
     }
 
     private void DrawRaster(Camera cam)

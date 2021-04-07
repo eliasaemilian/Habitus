@@ -17,9 +17,6 @@ public class Config_Terrain : ScriptableObject
     //river,
     //lake
 
-    [Header( "Terrain Renderer" )]
-    public Material Mat_Terrain;
-    public ComputeShader Compute_Terrain;
 }
 
 public class TerrainType

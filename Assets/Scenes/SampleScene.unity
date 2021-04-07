@@ -285,6 +285,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _mapConfig: {fileID: 11400000, guid: a961cecd29d18b5428f68b2ce181d5df, type: 2}
+  _renderSetup: {fileID: 11400000, guid: 94b73cd908979e34ebca1f84a2f155ab, type: 2}
   DebugGrid:
     center:
       ColRow: {x: 0, y: 0}
@@ -292,7 +293,8 @@ MonoBehaviour:
       ElevatedOnZ: 0
       Verts: []
       Hexagon:
-        center: {x: 0, y: 0, z: 0}
+        Center: {x: 0, y: 0, z: 0}
+        BorderVertices: []
       Neighbours: []
       IsConnected: 
       Center: {x: 0, y: 0, z: 0}
@@ -319,7 +321,6 @@ MonoBehaviour:
     CenterPoints: []
     CellsQueued: []
     RasterVertices: []
-    _terrainRenderers: []
 --- !u!4 &562034143
 Transform:
   m_ObjectHideFlags: 0

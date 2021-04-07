@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26fccf729d5b19c4aaeee6ec2de76e9a, type: 3}
+  m_Name: Setup_Render
+  m_EditorClassIdentifier: 
+  Compute_Grid: {fileID: 7200000, guid: 1fae6e84485b8084a934caa7e9b5dfc3, type: 3}
+  Mat_Terrain: {fileID: 2100000, guid: b0d1da0dd5e6e95428125c3750f5fbd2, type: 2}
+  Mat_Border: {fileID: 2100000, guid: afb409e5f4a2a5f4cb3c3696613e7e7b, type: 2}
+  Mat_Raster: {fileID: 2100000, guid: f152a44e5c91f9a478ef7120dda9458a, type: 2}

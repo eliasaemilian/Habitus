@@ -5,6 +5,7 @@ using UnityEngine;
 public class NewPlaythroughInit : MonoBehaviour
 {
     [SerializeField] private Config_Map _mapConfig = null;
+    [SerializeField] private Setup_Render _renderSetup = null;
 
     public Grid DebugGrid;
 
@@ -26,7 +27,7 @@ public class NewPlaythroughInit : MonoBehaviour
 
     private Grid InitGrid()
     {
-        Grid grid = new Grid( _mapConfig );
+        Grid grid = new Grid( _renderSetup, _mapConfig );
 
         transform.position = Vector3.zero;
         grid.DebugWorldMatrix = transform.localToWorldMatrix;
@@ -42,7 +43,7 @@ public class NewPlaythroughInit : MonoBehaviour
         
         gridMaster.name = "GridMaster";
         gridMaster.transform.position = Vector3.zero;
-        gridMaster.AddComponent<GridMaster>().CreateComponent(gridMaster.transform, grid);
+        gridMaster.AddComponent<GridMaster>().CreateComponent( grid );
 
     }
 
@@ -53,7 +54,7 @@ public class NewPlaythroughInit : MonoBehaviour
 
         gridRenderer.name = "GridRenderer";
         gridRenderer.transform.position = Vector3.zero;
-        gridRenderer.AddComponent<GridRenderer>().CreateComponent( gridRenderer.transform, grid );
+        gridRenderer.AddComponent<GridRenderer>().CreateComponent( grid );
         
     }
 }

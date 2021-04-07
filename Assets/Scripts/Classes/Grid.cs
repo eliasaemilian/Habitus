@@ -44,7 +44,7 @@ public class Grid
     // TERRAIN
     private TerrainRenderer _terrainRenderer;
 
-    public Grid( Config_Map config )
+    public Grid( Setup_Render setup, Config_Map config )
     {
         // GRID AND TILE INFORMATION
         _size = config.GridSize;
@@ -69,7 +69,7 @@ public class Grid
         InitGridCells();
 
         // INIT TERRAINS
-        InitTerrain( config );
+        InitTerrain( setup, config );
 
         // Init Hexagons with Border
         InitHexagons();
@@ -99,15 +99,15 @@ public class Grid
         }
     }
 
-    private void InitTerrain( Config_Map config )
+    private void InitTerrain(Setup_Render setup, Config_Map config )
     {
-        InitTerrainRenderer( config );
+        InitTerrainRenderer( setup );
         _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
     }
 
-    public void InitTerrainRenderer( Config_Map config )
+    public void InitTerrainRenderer( Setup_Render setup )
     {
-        _terrainRenderer = new TerrainRenderer( Size, TileHeight, TileWidth, config.BlankTerrain );
+        _terrainRenderer = new TerrainRenderer( Size, TileHeight, TileWidth, setup );
     }
 
     private void InitHexagons()

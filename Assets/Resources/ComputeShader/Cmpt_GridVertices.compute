@@ -44,6 +44,21 @@ void AddTriangle( inout uint n, float type, float3 a, float3 b, float3 c )
     n += 3;
 }
 
+void AddTriangle( float type, float3 a, float3 b, float3 c )
+{
+    Vertex v;
+    v.pos = float4( a, type );
+    ActiveVerticesOut.Append( v );
+    
+    v.pos = float4( b, type );
+    ActiveVerticesOut.Append( v );
+    
+    v.pos = float4( c, type );
+    ActiveVerticesOut.Append( v );
+}
+
+
+
 void AddTessFullQuad( inout uint n, float type, float3 t, float3 te[4] ) // right, down, left, up with t as middle point, 15 verts
 {
     for ( uint i = 0; i < 3; i++ )
@@ -97,10 +112,14 @@ void AddTessBottomHalf( inout uint n, float type, float3 t, float3 r, float3 l, 
     AddTriangle( n, type, t, ur, r );
 }
 
+groupshared uint cT0, cT1;
 
 [numthreads( NUM_THREADS, NUM_THREADS, 1 )]
 void GenGridVertices( uint3 id : SV_DispatchThreadID )
 {
+    cT0 = 0;
+    cT1 = 0;
+    
     uint n;
       
     float r = HEX_RADIUS;
@@ -147,7 +166,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
      // Factor 0
     for ( uint j = 0; j < HexInput[hid].tesselation.x; j++ ) // 18 Verts
     {
-        n = hid * 18;
+        n = ( cT0 * ( hid * 18 ) ) + ( cT1 * ( hid * 36 ) );
 
         for ( uint k = 0; k < 5; k++ )
         {
@@ -155,13 +174,14 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         }
         AddTriangle( n, type, verts[0], c, verts[5] );
         
+        cT0++;
     }
          
     
     // Factor 1
     for ( j = 0; j < HexInput[hid].tesselation.y; j++ )
     {
-        n = hid * 36;
+        n = ( cT0 * ( hid * 18 ) ) + ( cT1 * ( hid * 36 ) );
         
         float3 a[4] = { verts[0], verts[1], c, verts[5] };
         float3 b[4] = { c, verts[2], verts[3], verts[4] };
@@ -170,6 +190,8 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
 
         AddTessBottomHalf( n, type, t1[2], verts[1], verts[2], c );
         AddTessTopHalf( n, type, t1[3], verts[5], c, verts[4] );
+        
+        cT1++;
     }
 
     //Factor 2  
@@ -199,42 +221,44 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     
 }
 
+
+RWStructuredBuffer<Vertex> BorderVertices;
+
 [numthreads( NUM_THREADS, NUM_THREADS, 1 )]
 void GenMeshBorder( uint3 id : SV_DispatchThreadID )
 {
     uint hid = id.x + id.y * GRID_SIZE_X;
     if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y || hid > GRID_SIZE_X * GRID_SIZE_Y )
         return;
-    uint indices[36];
-    uint n = 0;
     
-    HexInput[hid].topverts[0] = float3( 20, 30, 30 );
+    uint n = hid * 36;
+        
+    float3 botverts[6];
+    for ( uint i = 0; i < 6; i++ )
+        botverts[i] = float3( HexInput[hid].topverts[0].x, 0, HexInput[hid].topverts[0].z );
     
     // gen indices
            // sides
-    for ( uint i = 0; i < 5; i++ )
+    for ( i = 0; i < 4; i++ )
     {
-        indices[n] = 15 + ( i * 2 );
-        indices[n + 1] = ( i * 2 ) + 2;
-        indices[n + 2] = 15 + ( i * 2 ) + 2;
+        BorderVertices[n].pos.xyz = HexInput[hid].topverts[i];
+        BorderVertices[n + 1].pos.xyz = botverts[i + 1];
+        BorderVertices[n + 2].pos.xyz = HexInput[hid].topverts[i + 1];
 
-        indices[n + 3] = ( i * 2 ) + 2;
-        indices[n + 4] = ( i * 2 ) + 4;
-        indices[n + 5] = 15 + ( i * 2 ) + 2;
+        BorderVertices[n + 3].pos.xyz = botverts[i + 1];
+        BorderVertices[n + 4].pos.xyz = botverts[i + 2];
+        BorderVertices[n + 5].pos.xyz = HexInput[hid].topverts[i + 1];
 
         n += 6;
     }
-
-    indices[n] = 12;
-    indices[n + 1] = 15;
-    indices[n + 2] = 25;
-
-    indices[n + 3] = 15;
-    indices[n + 4] = 12;
-    indices[n + 5] = 2;
-
-
-    n += 6;
     
+    BorderVertices[n].pos.xyz = botverts[5];
+    BorderVertices[n + 1].pos.xyz = HexInput[hid].topverts[0];
+    BorderVertices[n + 2].pos.xyz = HexInput[hid].topverts[5];
+
+    BorderVertices[n + 3].pos.xyz = HexInput[hid].topverts[0];
+    BorderVertices[n + 4].pos.xyz = botverts[5];
+    BorderVertices[n + 5].pos.xyz = botverts[0];
+        
     // fill vetices buffer with indices
 }
