@@ -35,11 +35,7 @@ public class Grid
     public Vector3[] RasterVertices;
 
 
-    // MESH BORDER
-    private Vector3[] _borderVertices;
-    public Vector3[] BorderVertices { get { return _borderVertices; } }
-    private int[] _borderIndices;
-    public int[] BorderIndices { get { return _borderIndices; } }
+
 
     // TERRAIN
     private TerrainRenderer _terrainRenderer;
@@ -87,7 +83,6 @@ public class Grid
                 c.WorldPos = GetWorldPos( c.ColRow, out c.ElevatedOnZ );
                 c.SetNeighbours( Size );
 
-                c.Hexagon = new Hexagon(); // TODO wat
 
                 Cells[x, y] = c;
                 GridPoints[x, y] = c.WorldPos;
@@ -117,17 +112,13 @@ public class Grid
         {
             for ( int j = 0; j < Cells.GetLength( 1 ); j++ )
             {
-                Hexagon hex = new Hexagon();
-                hex.Center = new Vector3( Cells[i,j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
+                Vector3 center = new Vector3( Cells[i,j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
+                Hexagon hex = new Hexagon( i, j, center, Cells[i, j].IsConnected );
                 AddHexagon( i, j, hex );
-
-               // border.AddRange( Cells[i, j].GetBorderVerticesByNeighbour() );
+           
             }
         }
 
-      //  _borderVertices = border.ToArray();
-      //  _borderIndices = new int[BorderVertices.Length];
-      //  for ( int i = 0; i < _borderIndices.Length; i++ ) _borderIndices[i] = i;
     }
 
 
@@ -215,7 +206,13 @@ public class Grid
         buf.DrawProcedural( DebugWorldMatrix, _terrainRenderer.MatTerrain, -1, MeshTopology.Triangles, _terrainRenderer.VerticesCount, 1 );
 
         Debug.Log( "Drawing Terrain " + _terrainRenderer.MatTerrain + " with " + _terrainRenderer.VerticesCount + " Vertices" );
+
+        _terrainRenderer.Mat_Border.SetPass( 0 );
+        buf.DrawProcedural( DebugWorldMatrix, _terrainRenderer.Mat_Border, -1, MeshTopology.Triangles, _terrainRenderer.VCountBorder, 1 );
     }
+
+
+
 
 
     private Vector3 GetWorldPos( Vector2 gridPos, out bool elevatedOnZ )

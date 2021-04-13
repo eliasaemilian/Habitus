@@ -12,6 +12,7 @@ struct Hexagon
     float4 center; //xyz = center pos, w = terrain type
     float4 tesselation;
     float3 topverts[6];
+    uint connections;
 };
 
 
@@ -20,7 +21,6 @@ struct Hexagon
 RWStructuredBuffer<Hexagon> HexInput;
 RWStructuredBuffer<Vertex> Vertices; // OUT
 //ConsumeStructuredBuffer<uint> ActiveIDs;
-AppendStructuredBuffer<Vertex> ActiveVerticesOut;
 
 float4 _Size;
 #define GRID_SIZE_X     ( (uint)_Size.x )
@@ -32,29 +32,11 @@ float4 _Size;
 
 void AddTriangle( inout uint n, float type, float3 a, float3 b, float3 c )
 {
-    Vertices[n].pos.xyz = a;
-    Vertices[n].pos.w = type;
-    
-    Vertices[n + 1].pos.xyz = b;
-    Vertices[n + 1].pos.w = type;
-
-    Vertices[n + 2].pos.xyz = c;
-    Vertices[n + 2].pos.w = type;
+    Vertices[n].pos = float4( a, type );   
+    Vertices[n + 1].pos = float4( b, type );
+    Vertices[n + 2].pos = float4( c, type );
 
     n += 3;
-}
-
-void AddTriangle( float type, float3 a, float3 b, float3 c )
-{
-    Vertex v;
-    v.pos = float4( a, type );
-    ActiveVerticesOut.Append( v );
-    
-    v.pos = float4( b, type );
-    ActiveVerticesOut.Append( v );
-    
-    v.pos = float4( c, type );
-    ActiveVerticesOut.Append( v );
 }
 
 
@@ -112,14 +94,10 @@ void AddTessBottomHalf( inout uint n, float type, float3 t, float3 r, float3 l, 
     AddTriangle( n, type, t, ur, r );
 }
 
-groupshared uint cT0, cT1;
 
 [numthreads( NUM_THREADS, NUM_THREADS, 1 )]
 void GenGridVertices( uint3 id : SV_DispatchThreadID )
-{
-    cT0 = 0;
-    cT1 = 0;
-    
+{    
     uint n;
       
     float r = HEX_RADIUS;
@@ -164,9 +142,9 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         // Hex Indices
         
      // Factor 0
-    for ( uint j = 0; j < HexInput[hid].tesselation.x; j++ ) // 18 Verts
+    for ( int j = 0; j < HexInput[hid].tesselation.x; j++ ) // 18 Verts
     {
-        n = ( cT0 * ( hid * 18 ) ) + ( cT1 * ( hid * 36 ) );
+        n = hid * 96;
 
         for ( uint k = 0; k < 5; k++ )
         {
@@ -174,14 +152,13 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         }
         AddTriangle( n, type, verts[0], c, verts[5] );
         
-        cT0++;
     }
          
     
     // Factor 1
     for ( j = 0; j < HexInput[hid].tesselation.y; j++ )
     {
-        n = ( cT0 * ( hid * 18 ) ) + ( cT1 * ( hid * 36 ) );
+        n = hid * 96;
         
         float3 a[4] = { verts[0], verts[1], c, verts[5] };
         float3 b[4] = { c, verts[2], verts[3], verts[4] };
@@ -190,8 +167,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
 
         AddTessBottomHalf( n, type, t1[2], verts[1], verts[2], c );
         AddTessTopHalf( n, type, t1[3], verts[5], c, verts[4] );
-        
-        cT1++;
+
     }
 
     //Factor 2  
@@ -221,7 +197,6 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     
 }
 
-
 RWStructuredBuffer<Vertex> BorderVertices;
 
 [numthreads( NUM_THREADS, NUM_THREADS, 1 )]
@@ -235,30 +210,50 @@ void GenMeshBorder( uint3 id : SV_DispatchThreadID )
         
     float3 botverts[6];
     for ( uint i = 0; i < 6; i++ )
-        botverts[i] = float3( HexInput[hid].topverts[0].x, 0, HexInput[hid].topverts[0].z );
+        botverts[i] = float3( HexInput[hid].topverts[i].x, 0, HexInput[hid].topverts[i].z );
     
+    uint type = HexInput[hid].center.w;
     // gen indices
            // sides
-    for ( i = 0; i < 4; i++ )
+    for ( i = 0; i < 5; i++ )
     {
-        BorderVertices[n].pos.xyz = HexInput[hid].topverts[i];
-        BorderVertices[n + 1].pos.xyz = botverts[i + 1];
-        BorderVertices[n + 2].pos.xyz = HexInput[hid].topverts[i + 1];
+        BorderVertices[n].pos = float4( HexInput[hid].topverts[i].xyz, type );
+        BorderVertices[n + 1].pos = float4( botverts[i], type );
+        BorderVertices[n + 2].pos = float4( HexInput[hid].topverts[i + 1], type );
 
-        BorderVertices[n + 3].pos.xyz = botverts[i + 1];
-        BorderVertices[n + 4].pos.xyz = botverts[i + 2];
-        BorderVertices[n + 5].pos.xyz = HexInput[hid].topverts[i + 1];
+        BorderVertices[n + 3].pos = float4( botverts[i], type );
+        BorderVertices[n + 4].pos = float4( botverts[i + 1], type );
+        BorderVertices[n + 5].pos = float4( HexInput[hid].topverts[i + 1], type );
 
         n += 6;
     }
     
-    BorderVertices[n].pos.xyz = botverts[5];
-    BorderVertices[n + 1].pos.xyz = HexInput[hid].topverts[0];
-    BorderVertices[n + 2].pos.xyz = HexInput[hid].topverts[5];
+    BorderVertices[n].pos = float4( botverts[5], type );
+    BorderVertices[n + 1].pos = float4( HexInput[hid].topverts[0], type );
+    BorderVertices[n + 2].pos = float4( HexInput[hid].topverts[5], type );
 
-    BorderVertices[n + 3].pos.xyz = HexInput[hid].topverts[0];
-    BorderVertices[n + 4].pos.xyz = botverts[5];
-    BorderVertices[n + 5].pos.xyz = botverts[0];
-        
-    // fill vetices buffer with indices
+    BorderVertices[n + 3].pos = float4( HexInput[hid].topverts[0], type );
+    BorderVertices[n + 4].pos = float4( botverts[5], type );
+    BorderVertices[n + 5].pos = float4( botverts[0], type );
+
+}
+
+ConsumeStructuredBuffer<uint> ActiveBorderIDs;
+AppendStructuredBuffer<Vertex> ActiveBorderVertices;
+
+[numthreads( 1, 1, 1 )]
+void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
+{
+    // consume id
+    uint aid = ActiveBorderIDs.Consume();
+    
+    
+    
+    // get vertices from id aus vertices buffer
+    
+    // for each true append 6 verticies by offset
+    
+    // append to active border
+    ActiveBorderVertices.Append( BorderVertices[aid] );
+    
 }

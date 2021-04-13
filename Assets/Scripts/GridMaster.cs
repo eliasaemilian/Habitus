@@ -118,7 +118,7 @@ private void Update()
             Vector3 p6 = new Vector3( c.x + r * .5f, y, c.z + w ); // 5
 
             Cell cell = Grid.CellsQueued[i];
-            cell.Verts = GenHexagonMeshInfo( cell, c, new Vector3[6] { p1, p2, p3, p4, p5, p6 } );
+            //cell.Verts = GenHexagonMeshInfo( cell, c, new Vector3[6] { p1, p2, p3, p4, p5, p6 } );
 
             List<Vector3> cverts = new List<Vector3>();
             // vertices
@@ -193,97 +193,7 @@ private void Update()
         }
 
     }
-    private Vector3[] GenHexagonMeshInfo( Cell cell, Vector3 center, Vector3[] oVerts )
-    {
-        // verts
-        Vector3[] verts = new Vector3[24 + 2];
-        int[] otherIndices = new int[( 3 * 24 ) + 36];
-        int[] topPlane = new int[3 * 12];
-        int c = 1;
-        Vector3 cTop = new Vector3( center.x, center.y + Grid.TileThickness, center.z ); // index 13
-        Vector3 cBot = center; // index 0
-        verts[0] = cBot;
-        verts[13] = cTop;
-
-        cell.Center = cTop;
-
-
-        for ( int i = 0; i < oVerts.Length; i++ )
-        {
-            verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
-            verts[c + 1] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
-            c += 2;
-        }
-        c = 14;
-        for ( int i = 0; i < oVerts.Length; i++ )
-        {
-            verts[c] = oVerts[i];
-            verts[c + 1] = oVerts[i];
-            c += 2;
-        }
-
-
-        // indices
-        c = 0;
-
-        // sides
-        for ( int i = 0; i < 5; i++ )
-        {
-            otherIndices[c] = 15 + ( i * 2 );
-            otherIndices[c + 1] = ( i * 2 ) + 2;
-            otherIndices[c + 2] = 15 + ( i * 2 ) + 2;
-
-            otherIndices[c + 3] = ( i * 2 ) + 2;
-            otherIndices[c + 4] = ( i * 2 ) + 4;
-            otherIndices[c + 5] = 15 + ( i * 2 ) + 2;
-
-            c += 6;
-        }
-
-        otherIndices[c] = 12;
-        otherIndices[c + 1] = 15;
-        otherIndices[c + 2] = 25;
-
-        otherIndices[c + 3] = 15;
-        otherIndices[c + 4] = 12;
-        otherIndices[c + 5] = 2;
-
-
-        c += 6;
-        // bottom hex plane
-        for ( int i = 1; i < 11; i += 2 )
-        {
-            otherIndices[c] = 0;
-            otherIndices[c + 1] = i + 2;
-            otherIndices[c + 2] = i;
-            c += 3;
-        }
-        otherIndices[c] = 0;
-        otherIndices[c + 1] = 1;
-        otherIndices[c + 2] = 11;
-
-
-
-        // top hex plane
-        c = 0;
-        for ( int i = 14; i < 24; i += 2 )
-        {
-            topPlane[c] = i;
-            topPlane[c + 1] = i + 2;
-            topPlane[c + 2] = 13;
-            c += 3;
-        }
-        topPlane[c] = 24;
-        topPlane[c + 1] = 14;
-        topPlane[c + 2] = 13;
-
-
-        cell.HVerts = verts;
-        cell.HIndicesTop = topPlane;
-        cell.HIndicesSides = otherIndices;
-
-        return verts;
-    }
+   
     private List<int> CalcIndicesGridPoints( Cell cell )
     {
         List<int> indices = new List<int>();

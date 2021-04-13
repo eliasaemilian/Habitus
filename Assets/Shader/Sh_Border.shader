@@ -1,4 +1,4 @@
-﻿Shader "Uber/UberSh_Terrain"
+﻿Shader "Grid/Sh_Border"
 {
     Properties
     {
@@ -18,7 +18,6 @@
             #pragma fragment frag
 
             #include "UnityCG.cginc"
-            #include "TMountains.cginc"
             #pragma target 4.0
 
             struct appdata
@@ -31,7 +30,6 @@
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
-                float3 normal : NORMAL;
                 float4 debugCol : TEXCOORD1;
             };
 
@@ -44,22 +42,20 @@
                 float4 pos; // xyz pos, w = terrain type
             };
 
-            uniform StructuredBuffer<Vertex> Vertices;
+            uniform StructuredBuffer<Vertex> BVertices;
 
             v2f vert ( uint id : SV_VertexID, appdata v)
             {
                 v2f o;
-                float3 pos = Vertices[id].pos.xyz;
-                float type = Vertices[id].pos.w;
+                float type = BVertices[id].pos.w;
+
+                o.vertex = UnityObjectToClipPos( float4( BVertices[id].pos.xyz, 1.0f ) );
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+
 
                 if (type == 0) o.debugCol = float4( 0, 1, 0, 1 );
                 else if (type == 1) o.debugCol = float4( 1, 0, 0, 1 );
                 else o.debugCol = float4( 0, 0, 0, 1 );
-
-                o.vertex = UnityObjectToClipPos( float4( pos, 1.0f ) );
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.normal = float3( 0, 1, 0 );
-
 
 
                 return o;

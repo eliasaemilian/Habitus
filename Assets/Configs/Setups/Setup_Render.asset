@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Compute_Grid: {fileID: 7200000, guid: 1fae6e84485b8084a934caa7e9b5dfc3, type: 3}
   Mat_Terrain: {fileID: 2100000, guid: b0d1da0dd5e6e95428125c3750f5fbd2, type: 2}
-  Mat_Border: {fileID: 2100000, guid: afb409e5f4a2a5f4cb3c3696613e7e7b, type: 2}
+  Mat_Border: {fileID: 2100000, guid: a4a2a164aa6a7a743ac0990b3ce296e5, type: 2}
   Mat_Raster: {fileID: 2100000, guid: f152a44e5c91f9a478ef7120dda9458a, type: 2}

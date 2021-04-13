@@ -55,6 +55,5 @@ public class NewPlaythroughInit : MonoBehaviour
         gridRenderer.name = "GridRenderer";
         gridRenderer.transform.position = Vector3.zero;
         gridRenderer.AddComponent<GridRenderer>().CreateComponent( grid );
-        
     }
 }

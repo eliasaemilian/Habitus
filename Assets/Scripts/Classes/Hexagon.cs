@@ -10,9 +10,12 @@ public class Hexagon
     public TerrainType Type { get { return _type; } }
     public Vector3 Center;
 
-    public Vector3[] BorderVertices;
+    private Vector2Int _colRow;
 
-    public GPU gpu { get { return new GPU( Center, GetGPUTesselationFromType(), Type.ID ); } }
+    public Vector3[] BorderVertices;
+    private bool[] _isConnectedToNeighbour;
+
+    public GPU gpu { get { return new GPU( Center, GetGPUTesselationFromType(), Type.ID, _isConnectedToNeighbour ); } }
 
     public struct GPU
     {
@@ -26,7 +29,9 @@ public class Hexagon
         public Vector3 topvert4;
         public Vector3 topvert5;
 
-        public GPU( Vector3 c, Vector4 t, int id )
+        public byte connections;
+
+        public GPU( Vector3 c, Vector4 t, int id, bool[] connected )
         {
             center = new Vector4( c.x, c.y, c.z, id );
             tesselation = t;
@@ -36,9 +41,19 @@ public class Hexagon
             topvert3 = Vector3.zero;
             topvert4 = Vector3.zero;
             topvert5 = Vector3.zero;
+            connections = Utils.ConvertBoolArrayToByte( connected );
         }
+
+
     };
 
+
+    public Hexagon( int col, int row, Vector3 c, bool[] connected )
+    {
+        _colRow = new Vector2Int( col, row );
+        Center = c;
+        _isConnectedToNeighbour = connected;
+    }
 
     private Vector4 GetGPUTesselationFromType()
     {

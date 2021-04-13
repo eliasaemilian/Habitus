@@ -15,5 +15,3 @@ MonoBehaviour:
   TerrainName: Blank
   ID: 0
   Tesselation: 0
-  Mat_Terrain: {fileID: 2100000, guid: b0d1da0dd5e6e95428125c3750f5fbd2, type: 2}
-  Compute_Terrain: {fileID: 7200000, guid: 1fae6e84485b8084a934caa7e9b5dfc3, type: 3}

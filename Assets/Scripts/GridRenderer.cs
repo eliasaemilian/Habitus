@@ -14,14 +14,13 @@ public struct GridVertex
 [RequireComponent (typeof(MeshRenderer))] 
 public class GridRenderer : InstantiatedGridComponent
 {
-    private ComputeBuffer gridVertBuffer, sidesBuffer;
+    private ComputeBuffer gridVertBuffer;
     private Material Mat_Raster;
-    private Material Mat_Border;
 
     private Dictionary<Camera, CommandBuffer> camsRaster = new Dictionary<Camera, CommandBuffer>();
     private Dictionary<Camera, CommandBuffer> camsMesh = new Dictionary<Camera, CommandBuffer>();
 
-    int indicesRaster, indicesBorder;
+    int indicesRaster;
     public bool gridOff;
 
     private ComputeShader cmpt_grid;
@@ -42,7 +41,6 @@ public class GridRenderer : InstantiatedGridComponent
         //   if ( FindObjectOfType<InterfaceListener>() != null ) InterfaceListener.ToggleGrid.AddListener( OnToggleGrid );
 
         //  InitRasterBuffer();
-        InitGridBorderBuffer();
     }
 
 
@@ -59,17 +57,6 @@ public class GridRenderer : InstantiatedGridComponent
         Mat_Raster.SetBuffer( "VertBuffer", gridVertBuffer );
     }
 
-    private void InitGridBorderBuffer()
-    {
-        if ( indicesBorder <= 0 ) return;
-        indicesBorder = Grid.BorderVertices.Length;
-
-        if ( sidesBuffer != null ) sidesBuffer.Dispose();
-        sidesBuffer = new ComputeBuffer( indicesBorder, sizeof( float ) * 3, ComputeBufferType.Default );
-        sidesBuffer.SetData( Grid.BorderVertices );
-
-        Mat_Border.SetBuffer( "VertBuffer", sidesBuffer );
-    }
 
     public void DebugReset()
     {
@@ -80,7 +67,6 @@ public class GridRenderer : InstantiatedGridComponent
     private void OnDisable()
     {       
         if ( gridVertBuffer != null ) gridVertBuffer.Dispose();
-        if ( sidesBuffer != null ) sidesBuffer.Dispose();
 
         Grid.CleanUp();
 
@@ -119,7 +105,7 @@ public class GridRenderer : InstantiatedGridComponent
     }
 
 
-    // ------------------------------------- DRAW CALL ---------------------------------------- //
+    // ------------------------------------- DRAW CALLS ---------------------------------------- //
     private void OnWillRenderObject()
     {
         bool isActive = gameObject.activeInHierarchy && enabled;
@@ -150,9 +136,6 @@ public class GridRenderer : InstantiatedGridComponent
         
         DrawTerrainMesh( cmdMesh );
 
-        // Draw Border
-        //DrawBorder( cmdMesh );
-
         // Add Cmd Buffer
         cam.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, cmdMesh );
     }
@@ -162,11 +145,7 @@ public class GridRenderer : InstantiatedGridComponent
         Grid.DrawTerrainProcedural( ref buf );
     }
 
-    private void DrawBorder(CommandBuffer buf)
-    {
-        Mat_Border.SetPass( 0 );
-        buf.DrawProcedural( transform.localToWorldMatrix, Mat_Border, -1, MeshTopology.Triangles, indicesBorder, 1 );
-    }
+
 
     private void DrawRaster(Camera cam)
     {
