@@ -1,5 +1,6 @@
 ﻿#pragma kernel GenGridVertices
 #pragma kernel GenMeshBorder
+#pragma kernel BuildActiveBorder
 #define NUM_THREADS  ( 8 )
 
 struct Vertex
@@ -11,8 +12,7 @@ struct Hexagon
 {
     float4 center; //xyz = center pos, w = terrain type
     float4 tesselation;
-    float3 topverts[6];
-    uint connections;
+    float4 topverts[6]; //xyz = topverts, w = connected to neighbour
 };
 
 
@@ -127,7 +127,8 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         float3( c.x - hr, c.y, c.z + w ),
         float3( c.x + hr, c.y, c.z + w )
     };     
-    HexInput[hid].topverts = verts;
+    for ( uint i = 0; i < 6; i++ )
+        HexInput[hid].topverts[i].xyz = verts[i];
         
     // Tesselation Factor 1 
     float3 t1[4] =
@@ -219,20 +220,20 @@ void GenMeshBorder( uint3 id : SV_DispatchThreadID )
     {
         BorderVertices[n].pos = float4( HexInput[hid].topverts[i].xyz, type );
         BorderVertices[n + 1].pos = float4( botverts[i], type );
-        BorderVertices[n + 2].pos = float4( HexInput[hid].topverts[i + 1], type );
+        BorderVertices[n + 2].pos = float4( HexInput[hid].topverts[i + 1].xyz, type );
 
         BorderVertices[n + 3].pos = float4( botverts[i], type );
         BorderVertices[n + 4].pos = float4( botverts[i + 1], type );
-        BorderVertices[n + 5].pos = float4( HexInput[hid].topverts[i + 1], type );
+        BorderVertices[n + 5].pos = float4( HexInput[hid].topverts[i + 1].xyz, type );
 
         n += 6;
     }
     
     BorderVertices[n].pos = float4( botverts[5], type );
-    BorderVertices[n + 1].pos = float4( HexInput[hid].topverts[0], type );
-    BorderVertices[n + 2].pos = float4( HexInput[hid].topverts[5], type );
+    BorderVertices[n + 1].pos = float4( HexInput[hid].topverts[0].xyz, type );
+    BorderVertices[n + 2].pos = float4( HexInput[hid].topverts[5].xyz, type );
 
-    BorderVertices[n + 3].pos = float4( HexInput[hid].topverts[0], type );
+    BorderVertices[n + 3].pos = float4( HexInput[hid].topverts[0].xyz, type );
     BorderVertices[n + 4].pos = float4( botverts[5], type );
     BorderVertices[n + 5].pos = float4( botverts[0], type );
 
@@ -245,8 +246,34 @@ AppendStructuredBuffer<Vertex> ActiveBorderVertices;
 void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
 {
     // consume id
-    uint aid = ActiveBorderIDs.Consume();
-    
+    uint aid = ActiveBorderIDs.Consume(); // <- this hexagon is displayed
+    uint count = 0;
+    for ( uint i = 0; i < 6; i++ )
+    {
+        uint connected = HexInput[aid].topverts[i].w;
+        uint n = 0;
+        if ( connected > 0 )
+        {
+
+            for ( uint j = 0; j < 6; j++ )
+            {
+
+                Vertex v;
+                v.pos = BorderVertices[( aid * 36 ) + ( n * 6 + j )].pos;
+                v.pos.w = aid;
+                v.pos.x = count;
+                ActiveBorderVertices.Append( v );
+                
+                count++;
+             //   ActiveBorderVertices.Append( BorderVertices[( aid * 36 ) + ( ( n * 6 ) + j )] );
+
+            }
+            n++;
+
+        }
+
+            
+    }
     
     
     // get vertices from id aus vertices buffer
@@ -254,6 +281,6 @@ void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
     // for each true append 6 verticies by offset
     
     // append to active border
-    ActiveBorderVertices.Append( BorderVertices[aid] );
+    
     
 }

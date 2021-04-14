@@ -26,7 +26,8 @@ public class Grid
 
     public Matrix4x4 DebugWorldMatrix;
 
-
+    private List<uint> _activeHexagons = new List<uint>();
+    public List<uint> ActiveHexagons { get { return _activeHexagons; } }
 
 
     // RASTER
@@ -62,6 +63,7 @@ public class Grid
         Cells = new Cell[Size, Size];
         GridPoints = new Vector3[Size, Size];
 
+
         InitGridCells();
 
         // INIT TERRAINS
@@ -69,6 +71,10 @@ public class Grid
 
         // Init Hexagons with Border
         InitHexagons();
+
+        // Set current Active Hexagons
+        SetActiveHexagonsForRender();
+
     }
 
     private void InitGridCells()
@@ -107,7 +113,6 @@ public class Grid
 
     private void InitHexagons()
     {
-        List<Vector3> border = new List<Vector3>();
         for ( int i = 0; i < Cells.GetLength( 0 ); i++ )
         {
             for ( int j = 0; j < Cells.GetLength( 1 ); j++ )
@@ -115,13 +120,18 @@ public class Grid
                 Vector3 center = new Vector3( Cells[i,j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
                 Hexagon hex = new Hexagon( i, j, center, Cells[i, j].IsConnected );
                 AddHexagon( i, j, hex );
+                SetHexagonAsActive( i, j ); // FOR DEBUGGING ALL HEXAGONS ARE SET TO ACTIVE
            
             }
         }
-
     }
 
 
+    public void SetHexagonAsActive(int x, int y)
+    {
+        uint id = (uint)( x + y * Size ); 
+        _activeHexagons.Add( id );
+    }
 
     public void AddHexagon( int x, int y, Hexagon hex )
     {
@@ -205,13 +215,17 @@ public class Grid
         _terrainRenderer.MatTerrain.SetPass( 0 );
         buf.DrawProcedural( DebugWorldMatrix, _terrainRenderer.MatTerrain, -1, MeshTopology.Triangles, _terrainRenderer.VerticesCount, 1 );
 
-        Debug.Log( "Drawing Terrain " + _terrainRenderer.MatTerrain + " with " + _terrainRenderer.VerticesCount + " Vertices" );
+      //  Debug.Log( "Drawing Terrain " + _terrainRenderer.MatTerrain + " with " + _terrainRenderer.VerticesCount + " Vertices" );
 
         _terrainRenderer.Mat_Border.SetPass( 0 );
         buf.DrawProcedural( DebugWorldMatrix, _terrainRenderer.Mat_Border, -1, MeshTopology.Triangles, _terrainRenderer.VCountBorder, 1 );
     }
 
-
+    private void SetActiveHexagonsForRender()
+    {
+        Debug.Log( "Active Hex: " + ActiveHexagons.Count );
+        _terrainRenderer.ActiveHexagons = ActiveHexagons;
+    }
 
 
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System;
 
 [System.Serializable]
 public class Hexagon
@@ -14,6 +14,15 @@ public class Hexagon
 
     public Vector3[] BorderVertices;
     private bool[] _isConnectedToNeighbour;
+    public int NeighbourConnections
+    {
+        get
+        {
+            int count = 0;
+            for ( int i = 0; i < _isConnectedToNeighbour.Length; i++ ) if( _isConnectedToNeighbour[i] ) count++ ;
+            return count;
+        } 
+    }
 
     public GPU gpu { get { return new GPU( Center, GetGPUTesselationFromType(), Type.ID, _isConnectedToNeighbour ); } }
 
@@ -22,26 +31,24 @@ public class Hexagon
         public Vector4 center;
         public Vector4 tesselation;
 
-        public Vector3 topvert0;
-        public Vector3 topvert1;
-        public Vector3 topvert2;
-        public Vector3 topvert3;
-        public Vector3 topvert4;
-        public Vector3 topvert5;
-
-        public byte connections;
+        public Vector4 topvert0;
+        public Vector4 topvert1;
+        public Vector4 topvert2;
+        public Vector4 topvert3;
+        public Vector4 topvert4;
+        public Vector4 topvert5;
 
         public GPU( Vector3 c, Vector4 t, int id, bool[] connected )
         {
             center = new Vector4( c.x, c.y, c.z, id );
             tesselation = t;
-            topvert0 = Vector3.zero;
-            topvert1 = Vector3.zero;
-            topvert2 = Vector3.zero;
-            topvert3 = Vector3.zero;
-            topvert4 = Vector3.zero;
-            topvert5 = Vector3.zero;
-            connections = Utils.ConvertBoolArrayToByte( connected );
+            topvert0 = new Vector4(0,0,0, Convert.ToInt32( connected[2]) );
+            topvert1 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[3] ) );
+            topvert2 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[4] ) );
+            topvert3 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[5] ) );
+            topvert4 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[0] ) );
+            topvert5 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[1] ) );
+
         }
 
 

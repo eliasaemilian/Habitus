@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 [Serializable]
 public class TerrainRenderer
 {
+    public List<uint> ActiveHexagons = new List<uint>(); // DEBUG: LATER SET BUFFER DIRECTLY
     const int NUM_THREADS = 8;
 
     private Material _matTerrain;
@@ -30,6 +31,9 @@ public class TerrainRenderer
     private ComputeBuffer _cmptBufferOut;
     private ComputeBuffer _cmptBufferHexagons;
     private ComputeBuffer _cmptBorderOut;
+    private ComputeBuffer _cmptActiveBorderIDs;
+    private ComputeBuffer _cmptActiveBorderVertices;
+
     private Vector4 _size;
 
 
@@ -54,6 +58,7 @@ public class TerrainRenderer
     {
         CleanUp();
 
+        if ( ActiveHexagons.Count <= 0 ) return;
         if ( VerticesCount <= 0 ) return;
 
         _cmptBufferOut = new ComputeBuffer( VerticesCount, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Default );
@@ -92,15 +97,43 @@ public class TerrainRenderer
         }
         DEBUGHEX = hex.ToArray();
 
-        //GridVertex[] debugBorder = new GridVertex[VCountBorder];
-        //_cmptBorderOut.GetData( debugBorder );
-        //for ( int i = 0; i < debugBorder.Length; i++ )
-        //{
-        //    Debug.Log( "Border: " + debugBorder[i].vertex );
-        //}
+
+
+        // BORDER
+        int bordercount = GetActiveBorderVCount();
+        _cmptActiveBorderIDs = new ComputeBuffer( ActiveHexagons.Count, sizeof( uint ), ComputeBufferType.Append );
+        _cmptActiveBorderVertices = new ComputeBuffer( bordercount, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Append );
+        _cmptActiveBorderIDs.SetCounterValue( (uint)ActiveHexagons.Count );
+        _cmptActiveBorderVertices.SetCounterValue( 0 );
+        _cmptActiveBorderIDs.SetData( ActiveHexagons.ToArray() );
+
+        int kernelHandleBuildBorder = ComputeTerrainShader.FindKernel( "BuildActiveBorder" );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "HexInput", _cmptBufferHexagons );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "BorderVertices", _cmptBorderOut );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderIDs", _cmptActiveBorderIDs );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderVertices", _cmptActiveBorderVertices );
+        ComputeTerrainShader.Dispatch( kernelHandleBuildBorder, HexagonCount, 1, 1 );
 
         MatTerrain.SetBuffer( "Vertices", _cmptBufferOut );
-        Mat_Border.SetBuffer( "BVertices", _cmptBorderOut );
+        Mat_Border.SetBuffer( "BVertices", _cmptActiveBorderVertices );
+
+        GridVertex[] debugBorder = new GridVertex[bordercount];
+        _cmptActiveBorderVertices.GetData( debugBorder );
+        for ( int i = 0; i < debugBorder.Length; i++ )
+        {
+            Debug.Log( "Border: " + debugBorder[i].vertex );
+
+        }
+
+        uint[] debugIds = new uint[ActiveHexagons.Count];
+        _cmptActiveBorderIDs.GetData( debugIds );
+        for ( int i = 0; i < debugIds.Length; i++ )
+        {
+            Debug.Log( "ID: " + debugIds[i]);
+
+        }
+
+        Debug.Log( "Rendered " + bordercount.ToString() + " Border Vertices" );
     }
 
 
@@ -132,6 +165,16 @@ public class TerrainRenderer
         return HexagonCount * 36;
     }
 
+    private int GetActiveBorderVCount()
+    {
+        int count = 0;
+        for ( int i = 0; i < _hexagons.GetLength( 0 ); i++ )
+        {
+            for ( int j = 0; j < _hexagons.GetLength( 0 ); j++ ) count += _hexagons[i, j].NeighbourConnections * 6;
+        }
+        return count;
+    }
+
 
     public void AddHexagonToRenderer(int x, int y, Hexagon h)
     {
@@ -144,5 +187,7 @@ public class TerrainRenderer
         if ( _cmptBufferOut != null ) _cmptBufferOut.Dispose();
         if ( _cmptBufferHexagons != null ) _cmptBufferHexagons.Dispose();
         if ( _cmptBorderOut != null ) _cmptBorderOut.Dispose();
+        if ( _cmptActiveBorderIDs != null ) _cmptActiveBorderIDs.Dispose();
+        if ( _cmptActiveBorderVertices != null ) _cmptActiveBorderVertices.Dispose();
     }
 }
