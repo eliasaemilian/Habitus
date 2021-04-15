@@ -1,0 +1,20 @@
+﻿#pragma kernel TrisToVerticesBuffer
+#include "MeshStructs.cginc"
+
+float _Count;
+
+ConsumeStructuredBuffer<Triangle> ArgsIn;
+RWStructuredBuffer<Vertex> ArgsOut;
+
+[numthreads( 8, 1, 1 )]
+void TrisToVerticesBuffer( uint3 id : SV_DispatchThreadID )
+{
+    uint tid = id.x;
+    uint n = tid * 3;
+    
+    Triangle tris = ArgsIn.Consume();
+    
+    ArgsOut[n] = tris.v[0];
+    ArgsOut[n + 1] = tris.v[1];
+    ArgsOut[n + 2] = tris.v[2];
+}

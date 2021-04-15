@@ -1,20 +1,9 @@
 ﻿#pragma kernel GenGridVertices
 #pragma kernel GenMeshBorder
 #pragma kernel BuildActiveBorder
+#include "MeshStructs.cginc"
+
 #define NUM_THREADS  ( 8 )
-
-struct Vertex
-{
-    float4 pos; //xyz = pos, w = terrain type
-};
-
-struct Hexagon
-{
-    float4 center; //xyz = center pos, w = terrain type
-    float4 tesselation;
-    float4 topverts[6]; //xyz = topverts, w = connected to neighbour
-};
-
 
 
 
@@ -240,47 +229,37 @@ void GenMeshBorder( uint3 id : SV_DispatchThreadID )
 }
 
 ConsumeStructuredBuffer<uint> ActiveBorderIDs;
-AppendStructuredBuffer<Vertex> ActiveBorderVertices;
+AppendStructuredBuffer<Triangle> ActiveBorderTriangles;
+RWStructuredBuffer<Vertex> ActiveBorderVertices;
+
 
 [numthreads( 1, 1, 1 )]
 void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
-{
-    // consume id
+{   
     uint aid = ActiveBorderIDs.Consume(); // <- this hexagon is displayed
-    uint count = 0;
+    uint n = 0;
+
     for ( uint i = 0; i < 6; i++ )
     {
         uint connected = HexInput[aid].topverts[i].w;
-        uint n = 0;
-        if ( connected > 0 )
+        if ( connected == 0 )
         {
-
-            for ( uint j = 0; j < 6; j++ )
+            for ( uint j = 0; j < 6; j+= 3 )
             {
-
-                Vertex v;
-                v.pos = BorderVertices[( aid * 36 ) + ( n * 6 + j )].pos;
-                v.pos.w = aid;
-                v.pos.x = count;
-                ActiveBorderVertices.Append( v );
                 
-                count++;
-             //   ActiveBorderVertices.Append( BorderVertices[( aid * 36 ) + ( ( n * 6 ) + j )] );
-
-            }
-            n++;
+                Vertex v[3];
+                v[0] = BorderVertices[( aid * 36 ) + ( n * 6 + j )];
+                v[1] = BorderVertices[( aid * 36 ) + ( n * 6 + j + 1 )];
+                v[2] = BorderVertices[( aid * 36 ) + ( n * 6 + j + 2 )];
+                Triangle tris;
+                tris.v = v;
+                ActiveBorderTriangles.Append( tris );
+            }           
 
         }
-
+        n++;
             
-    }
-    
-    
-    // get vertices from id aus vertices buffer
-    
-    // for each true append 6 verticies by offset
-    
-    // append to active border
-    
-    
+    }        
+        
 }
+

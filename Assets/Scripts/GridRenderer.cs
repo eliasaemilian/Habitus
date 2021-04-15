@@ -10,6 +10,13 @@ public struct GridVertex
     public Vector4 vertex;
 }
 
+public struct Triangle
+{
+    public GridVertex v1;
+    public GridVertex v2;
+    public GridVertex v3;
+}
+
 
 [RequireComponent (typeof(MeshRenderer))] 
 public class GridRenderer : InstantiatedGridComponent

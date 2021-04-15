@@ -102,7 +102,8 @@ public class TerrainRenderer
         // BORDER
         int bordercount = GetActiveBorderVCount();
         _cmptActiveBorderIDs = new ComputeBuffer( ActiveHexagons.Count, sizeof( uint ), ComputeBufferType.Append );
-        _cmptActiveBorderVertices = new ComputeBuffer( bordercount, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Append );
+        _cmptActiveBorderVertices = new ComputeBuffer( bordercount, Marshal.SizeOf( typeof( GridVertex ) ), ComputeBufferType.Default );
+        ComputeBuffer _cmptActiveBorderTriangles = new ComputeBuffer( bordercount / 3, Marshal.SizeOf( typeof( Triangle ) ), ComputeBufferType.Append );
         _cmptActiveBorderIDs.SetCounterValue( (uint)ActiveHexagons.Count );
         _cmptActiveBorderVertices.SetCounterValue( 0 );
         _cmptActiveBorderIDs.SetData( ActiveHexagons.ToArray() );
@@ -112,7 +113,23 @@ public class TerrainRenderer
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "BorderVertices", _cmptBorderOut );
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderIDs", _cmptActiveBorderIDs );
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderVertices", _cmptActiveBorderVertices );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderTriangles", _cmptActiveBorderTriangles );
         ComputeTerrainShader.Dispatch( kernelHandleBuildBorder, HexagonCount, 1, 1 );
+
+
+        Triangle[] data = new Triangle[bordercount / 3];
+        GridVertex[] vertices = new GridVertex[bordercount];
+        _cmptActiveBorderTriangles.GetData( data );
+        int count = 0;
+        for ( int i = 0; i < bordercount / 3; i++ )
+        {
+            vertices[count] = data[i].v1;
+            vertices[count + 1] = data[i].v2;
+            vertices[count + 2] = data[i].v3;
+            count += 3;
+        }
+
+        _cmptActiveBorderVertices.SetData( vertices );
 
         MatTerrain.SetBuffer( "Vertices", _cmptBufferOut );
         Mat_Border.SetBuffer( "BVertices", _cmptActiveBorderVertices );
