@@ -114,22 +114,10 @@ public class TerrainRenderer
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderIDs", _cmptActiveBorderIDs );
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderVertices", _cmptActiveBorderVertices );
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderTriangles", _cmptActiveBorderTriangles );
-        ComputeTerrainShader.Dispatch( kernelHandleBuildBorder, HexagonCount, 1, 1 );
+        ComputeTerrainShader.Dispatch( kernelHandleBuildBorder, HexagonCount / 8, 1, 1 );
 
+        gpuUtils.TrisToVerts( ref _cmptActiveBorderTriangles, ref _cmptActiveBorderVertices, bordercount );
 
-        Triangle[] data = new Triangle[bordercount / 3];
-        GridVertex[] vertices = new GridVertex[bordercount];
-        _cmptActiveBorderTriangles.GetData( data );
-        int count = 0;
-        for ( int i = 0; i < bordercount / 3; i++ )
-        {
-            vertices[count] = data[i].v1;
-            vertices[count + 1] = data[i].v2;
-            vertices[count + 2] = data[i].v3;
-            count += 3;
-        }
-
-        _cmptActiveBorderVertices.SetData( vertices );
 
         MatTerrain.SetBuffer( "Vertices", _cmptBufferOut );
         Mat_Border.SetBuffer( "BVertices", _cmptActiveBorderVertices );

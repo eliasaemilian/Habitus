@@ -233,10 +233,10 @@ AppendStructuredBuffer<Triangle> ActiveBorderTriangles;
 RWStructuredBuffer<Vertex> ActiveBorderVertices;
 
 
-[numthreads( 1, 1, 1 )]
+[numthreads( 8, 1, 1 )]
 void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
 {   
-    uint aid = ActiveBorderIDs.Consume(); // <- this hexagon is displayed
+    uint aid = ActiveBorderIDs.Consume();
     uint n = 0;
 
     for ( uint i = 0; i < 6; i++ )
@@ -245,8 +245,7 @@ void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
         if ( connected == 0 )
         {
             for ( uint j = 0; j < 6; j+= 3 )
-            {
-                
+            {               
                 Vertex v[3];
                 v[0] = BorderVertices[( aid * 36 ) + ( n * 6 + j )];
                 v[1] = BorderVertices[( aid * 36 ) + ( n * 6 + j + 1 )];
@@ -255,11 +254,8 @@ void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
                 tris.v = v;
                 ActiveBorderTriangles.Append( tris );
             }           
-
         }
-        n++;
-            
-    }        
-        
+        n++;           
+    }                
 }
 
