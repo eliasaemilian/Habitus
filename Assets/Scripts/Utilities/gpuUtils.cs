@@ -4,6 +4,19 @@ using UnityEngine;
 
 public static class gpuUtils
 {
+    [System.Serializable]
+    public struct GridVertex
+    {
+        public Vector4 vertex;
+    }
+
+    public struct Triangle
+    {
+        public GridVertex v1;
+        public GridVertex v2;
+        public GridVertex v3;
+    }
+
     public static void TrisToVerts( ref ComputeBuffer bufIn, ref ComputeBuffer bufOut, int count )
     {
         if (!DispatchTrisToVertsCompute( ref bufIn, ref bufOut, count ) ) TrisToVertCPUAlt( ref bufIn, ref bufOut, count );

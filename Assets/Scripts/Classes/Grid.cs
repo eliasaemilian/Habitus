@@ -77,6 +77,33 @@ public class Grid
 
     }
 
+    public uint GetHexIDByColRow(int col, int row)
+    {
+        return (uint)( col + row * Size ); 
+    }
+
+    public void RemoveHexagon(uint[] ids)
+    {
+        for ( int i = 0; i < ids.Length; i++ )
+        {
+            if ( ActiveHexagons.Contains( ids[i] ) ) ActiveHexagons.Remove( ids[i] );
+            else Debug.LogError( "Fucked up" );
+        }
+
+        
+      //  SetActiveHexagonsForRender();
+        _terrainRenderer.RemoveHexagon( ids );
+    }
+
+
+    private void UpdateNeighbours()
+    {
+        for ( int i = 0; i < ActiveHexagons.Count; i++ )
+        {
+            
+        }
+    }
+
     private void InitGridCells()
     {
         int i = 0;
@@ -165,7 +192,7 @@ public class Grid
 
     public void GenerateProceduralGrid()
     {
-        _terrainRenderer.SetComputeBuffer();
+        _terrainRenderer.ComputeVertexData();
 
     }
 

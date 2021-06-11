@@ -34,6 +34,7 @@ public class CameraController : MonoBehaviour
     bool updated;
     void LateUpdate()
     {
+        return;
         updated = false;
         // Rotation
         if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis( "Vertical" ) != 0 )           

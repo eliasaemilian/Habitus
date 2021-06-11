@@ -1,6 +1,8 @@
 ﻿#pragma kernel GenGridVertices
 #pragma kernel GenMeshBorder
 #pragma kernel BuildActiveBorder
+#pragma kernel AppendHexagons
+#pragma kernel RemoveHexagons
 #include "MeshStructs.cginc"
 
 #define NUM_THREADS  ( 8 )
@@ -9,7 +11,7 @@
 
 RWStructuredBuffer<Hexagon> HexInput;
 RWStructuredBuffer<Vertex> Vertices; // OUT
-//ConsumeStructuredBuffer<uint> ActiveIDs;
+ConsumeStructuredBuffer<uint> ActiveIDs;
 
 float4 _Size;
 #define GRID_SIZE_X     ( (uint)_Size.x )
@@ -86,7 +88,7 @@ void AddTessBottomHalf( inout uint n, float type, float3 t, float3 r, float3 l, 
 
 [numthreads( NUM_THREADS, NUM_THREADS, 1 )]
 void GenGridVertices( uint3 id : SV_DispatchThreadID )
-{    
+{
     uint n;
       
     float r = HEX_RADIUS;
@@ -97,7 +99,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     float hw = w * .5;
     float hhw = hw * .5;
             
-    uint hid = id.x + id.y * GRID_SIZE_X;    
+    uint hid = id.x + id.y * GRID_SIZE_X;
     if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y || hid > GRID_SIZE_X * GRID_SIZE_Y )
         return;
    
@@ -115,7 +117,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         float3( c.x - r, c.y, c.z ),
         float3( c.x - hr, c.y, c.z + w ),
         float3( c.x + hr, c.y, c.z + w )
-    };     
+    };
     for ( uint i = 0; i < 6; i++ )
         HexInput[hid].topverts[i].xyz = verts[i];
         
@@ -184,8 +186,43 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         AddTessTopHalf( n, type, t1[3], verts[5], t2[7], c, t2[6], verts[4] );
     }
      
-    
 }
+
+RWStructuredBuffer<Vertex> VerticesAlt;
+
+[numthreads( NUM_THREADS, 1, 1 )]
+void AppendHexagons( uint3 id : SV_DispatchThreadID )
+{
+    uint hid = ActiveIDs.Consume();
+    
+    uint n = hid * 96;
+    for ( uint i = 0; i < 96; i++ )
+    {
+        VerticesAlt[n + i] = Vertices[n + i];
+        //Triangle tris;
+        //tris.v[0] = Vertices[hid + i];
+        //tris.v[0] = Vertices[hid + i + 1];
+        //tris.v[0] = Vertices[hid + i + 2];
+        //ActiveHexagonTris.Append( tris );
+    }
+    // append hex vertices by offset
+}
+
+ConsumeStructuredBuffer<uint> ToRemoveHexIDs;
+
+[numthreads( 1, 1, 1 )]
+void RemoveHexagons( uint3 id : SV_DispatchThreadID )
+{
+    uint hid = ToRemoveHexIDs.Consume();
+    
+    uint n = hid * 96;
+    for ( uint i = 0; i < 96; i ++ )
+    {
+       VerticesAlt[n + i].pos = float4( 0, 0, 0, 0 );
+    }
+}
+    
+    
 
 RWStructuredBuffer<Vertex> BorderVertices;
 
@@ -228,15 +265,14 @@ void GenMeshBorder( uint3 id : SV_DispatchThreadID )
 
 }
 
-ConsumeStructuredBuffer<uint> ActiveBorderIDs;
+
+
 AppendStructuredBuffer<Triangle> ActiveBorderTriangles;
-RWStructuredBuffer<Vertex> ActiveBorderVertices;
 
-
-[numthreads( 8, 1, 1 )]
+[numthreads( NUM_THREADS, 1, 1 )]
 void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
 {   
-    uint aid = ActiveBorderIDs.Consume();
+    uint aid = ActiveIDs.Consume();
     uint n = 0;
 
     for ( uint i = 0; i < 6; i++ )

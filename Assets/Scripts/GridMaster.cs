@@ -7,14 +7,12 @@ public class GridMaster : InstantiatedGridComponent
     float r; float w;
 
 
-    public Grid DebugGridView;
 
 
-
-private void Update()
+    private void Update()
     {
         if ( Input.GetMouseButtonUp( 0 ) ) OnClickNeighbourDebug();
-        DebugGridView = Grid;
+      
     }
     private void ClearGrid()
     {
@@ -29,12 +27,12 @@ private void Update()
 
     public bool GetCellOnClick(out Vector2Int hex)
     {
-        RaycastHit hit;
         hex = new Vector2Int();
+        Plane plane = new Plane( Vector3.up, 0 );
         Ray ray = Camera.main.ScreenPointToRay( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - Grid.TileThickness ) );
-        if ( Physics.Raycast( ray, out hit ) )
-        {           
-            Vector3 p = hit.point;
+        if ( plane.Raycast( ray, out float pldist ) )
+        {
+            Vector3 p = ray.GetPoint( pldist );
 
             float col; float row;
 
@@ -48,7 +46,6 @@ private void Update()
 
             int tC = Mathf.RoundToInt( col );
             int tR = Mathf.RoundToInt( row );
-
 
             Vector2 pos = new Vector2( p.x, p.z );
 
@@ -76,17 +73,17 @@ private void Update()
 
     public void OnClickNeighbourDebug()
     {
+        Debug.Log( "Click" );
         if ( GetCellOnClick( out Vector2Int hex ) )
         {
 
           //  Grid.Cells[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
-            Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.Size );
-            Cell[] neighbours = Grid.GetNeighbourCellsByCell( Grid.Cells[hex.x, hex.y] );
-
-            for ( int i = 0; i < neighbours.Length; i++ )
-            {
-              //  neighbours[i].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.blue;
-            }
+          //  Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.Size );
+            Debug.Log( $"Clicked on Col: {Grid.Cells[hex.x, hex.y].ColRow.x}, Row: {Grid.Cells[hex.x, hex.y].ColRow.y}." );
+            uint id = Grid.GetHexIDByColRow( hex.y, hex.x );
+           
+            Grid.RemoveHexagon( new uint[] { id } );
+            Debug.Log( "Removed " + id );
         }
 
     }

@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Config_TileType
   TerrainName: Mountains
   ID: 1
-  Tesselation: 1
+  Tesselation: 2
