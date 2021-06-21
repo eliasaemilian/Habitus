@@ -22,6 +22,7 @@ public class NewPlaythroughInit : MonoBehaviour
 
         // setup dependencies <- this needs to be in general startup
         grid.GenerateProceduralGrid();
+
         // kill self
     }
 
@@ -37,10 +38,10 @@ public class NewPlaythroughInit : MonoBehaviour
         return grid;
     }
 
-    private void InitGridMaster(Grid grid )
+    private void InitGridMaster( Grid grid )
     {
         GameObject gridMaster = new GameObject();
-        
+
         gridMaster.name = "GridMaster";
         gridMaster.transform.position = Vector3.zero;
         gridMaster.AddComponent<GridMaster>().CreateComponent( grid );

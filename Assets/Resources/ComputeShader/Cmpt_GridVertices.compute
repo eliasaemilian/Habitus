@@ -23,7 +23,7 @@ float4 _Size;
 
 void AddTriangle( inout uint n, float type, float3 a, float3 b, float3 c )
 {
-    Vertices[n].pos = float4( a, type );   
+    Vertices[n].pos = float4( a, type );
     Vertices[n + 1].pos = float4( b, type );
     Vertices[n + 2].pos = float4( c, type );
 
@@ -216,9 +216,9 @@ void RemoveHexagons( uint3 id : SV_DispatchThreadID )
     uint hid = ToRemoveHexIDs.Consume();
     
     uint n = hid * 96;
-    for ( uint i = 0; i < 96; i ++ )
+    for ( uint i = 0; i < 96; i++ )
     {
-       VerticesAlt[n + i].pos = float4( 0, 0, 0, 0 );
+        VerticesAlt[n + i].pos = float4( 0, 0, 0, 0 );
     }
 }
     
@@ -271,7 +271,7 @@ AppendStructuredBuffer<Triangle> ActiveBorderTriangles;
 
 [numthreads( NUM_THREADS, 1, 1 )]
 void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
-{   
+{
     uint aid = ActiveIDs.Consume();
     uint n = 0;
 
@@ -280,8 +280,8 @@ void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
         uint connected = HexInput[aid].topverts[i].w;
         if ( connected == 0 )
         {
-            for ( uint j = 0; j < 6; j+= 3 )
-            {               
+            for ( uint j = 0; j < 6; j += 3 )
+            {
                 Vertex v[3];
                 v[0] = BorderVertices[( aid * 36 ) + ( n * 6 + j )];
                 v[1] = BorderVertices[( aid * 36 ) + ( n * 6 + j + 1 )];
@@ -289,9 +289,9 @@ void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
                 Triangle tris;
                 tris.v = v;
                 ActiveBorderTriangles.Append( tris );
-            }           
+            }
         }
-        n++;           
-    }                
+        n++;
+    }
 }
 

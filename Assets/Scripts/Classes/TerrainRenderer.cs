@@ -9,8 +9,10 @@ using System.Runtime.InteropServices;
 [Serializable]
 public class TerrainRenderer
 {
-    public List<uint> ActiveHexagons = new List<uint>(); // DEBUG: LATER SET BUFFER DIRECTLY
     const int NUM_THREADS = 8;
+
+
+    public List<uint> ActiveHexagons = new List<uint>(); // DEBUG: LATER SET BUFFER DIRECTLY
 
     private Material _matTerrain;
     public Material MatTerrain { get { return _matTerrain; } }
@@ -28,23 +30,18 @@ public class TerrainRenderer
     private Hexagon[,] _hexagons;
     private Hexagon.GPU[,] _hexBuffer;
 
-    private ComputeBuffer _cmptBufferOut;
-    private ComputeBuffer _cmptBufferHexagons;
-    private ComputeBuffer _cmptBorderOut;
-    private ComputeBuffer _cmptActiveIDs;
-    private ComputeBuffer _cmptActiveBorderVertices;
-    private ComputeBuffer _cmptActiveBorderTriangles;
-    private ComputeBuffer _cmptVerticesAlt;
-    private ComputeBuffer _cmptRemoveIDs;
+    private ComputeBuffer _bufVerticesOut, _bufVerticesOutALT;
+    private ComputeBuffer _bufHexagonInput, _bufBorderVerticesOut;
+
+    private ComputeBuffer _bufActiveIDs, _bufRemoveIDs;
+    private ComputeBuffer _bufActiveBorderVertices, _bufActiveBorderTriangles;
+
     private Vector4 _size;
 
-
-    public Hexagon.GPU[] DEBUGHEX;
-
-    public TerrainRenderer( int gridSize, float tileHeight, float tileWidth, Setup_Render setup ) 
+    public TerrainRenderer( int gridSize, float tileHeight, float tileWidth, Setup_Render setup )
     {
         _matTerrain = setup.Mat_Terrain;
-        _computeTerrainShader = setup.Compute_Grid; 
+        _computeTerrainShader = setup.Compute_Grid;
 
         _matBorder = setup.Mat_Border;
 
@@ -63,18 +60,18 @@ public class TerrainRenderer
         if ( ActiveHexagons.Count <= 0 ) return;
         if ( VerticesCount <= 0 ) return;
 
-        _cmptBufferOut = new ComputeBuffer( VerticesCount, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
-        _cmptBufferHexagons = new ComputeBuffer( (int)(_size.x * _size.y), Marshal.SizeOf(typeof(Hexagon.GPU)), ComputeBufferType.Default );
-        _cmptBorderOut = new ComputeBuffer( VCountBorder, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
-        _cmptBufferHexagons.SetData( _hexBuffer );
+        _bufVerticesOut = new ComputeBuffer( VerticesCount, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
+        _bufHexagonInput = new ComputeBuffer( (int)( _size.x * _size.y ), Marshal.SizeOf( typeof( Hexagon.GPU ) ), ComputeBufferType.Default );
+        _bufBorderVerticesOut = new ComputeBuffer( VCountBorder, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
+        _bufHexagonInput.SetData( _hexBuffer );
 
         int kernelHandle = ComputeTerrainShader.FindKernel( "GenGridVertices" );
         int kernelHandleBorder = ComputeTerrainShader.FindKernel( "GenMeshBorder" );
 
-        ComputeTerrainShader.SetBuffer( kernelHandle, "HexInput", _cmptBufferHexagons );
-        ComputeTerrainShader.SetBuffer( kernelHandle, "Vertices", _cmptBufferOut );
-        ComputeTerrainShader.SetBuffer( kernelHandleBorder, "BorderVertices", _cmptBorderOut );
-        ComputeTerrainShader.SetBuffer( kernelHandleBorder, "HexInput", _cmptBufferHexagons );
+        ComputeTerrainShader.SetBuffer( kernelHandle, "HexInput", _bufHexagonInput );
+        ComputeTerrainShader.SetBuffer( kernelHandle, "Vertices", _bufVerticesOut );
+        ComputeTerrainShader.SetBuffer( kernelHandleBorder, "BorderVertices", _bufBorderVerticesOut );
+        ComputeTerrainShader.SetBuffer( kernelHandleBorder, "HexInput", _bufHexagonInput );
 
         ComputeTerrainShader.SetVector( "_Size", _size );
 
@@ -92,35 +89,40 @@ public class TerrainRenderer
         int bordercount = GetActiveBorderVCount();
         if ( bordercount <= 0 ) return;
 
-        if ( _cmptActiveBorderVertices != null ) _cmptActiveBorderVertices.Dispose();
-        if ( _cmptActiveBorderTriangles != null ) _cmptActiveBorderTriangles.Dispose();
+        if ( _bufActiveBorderVertices != null ) _bufActiveBorderVertices.Dispose();
+        if ( _bufActiveBorderTriangles != null ) _bufActiveBorderTriangles.Dispose();
 
-        _cmptActiveBorderVertices = new ComputeBuffer( bordercount, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
-        _cmptActiveBorderTriangles = new ComputeBuffer( bordercount / 3, Marshal.SizeOf( typeof( gpuUtils.Triangle ) ), ComputeBufferType.Append );
+        _bufActiveBorderVertices = new ComputeBuffer( bordercount, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
+        _bufActiveBorderTriangles = new ComputeBuffer( bordercount / 3, Marshal.SizeOf( typeof( gpuUtils.Triangle ) ), ComputeBufferType.Append );
 
-        _cmptActiveIDs.SetCounterValue( (uint)ActiveHexagons.Count );
-        _cmptActiveBorderVertices.SetCounterValue( 0 );
+        _bufActiveIDs.SetCounterValue( (uint)ActiveHexagons.Count );
+        _bufActiveBorderVertices.SetCounterValue( 0 );
 
         int kernelHandleBuildBorder = ComputeTerrainShader.FindKernel( "BuildActiveBorder" );
-        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "HexInput", _cmptBufferHexagons );
-        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "BorderVertices", _cmptBorderOut );
-        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveIDs", _cmptActiveIDs );
-        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderTriangles", _cmptActiveBorderTriangles );
-        ComputeTerrainShader.Dispatch( kernelHandleBuildBorder, ActiveHexagons.Count / 8, 1, 1 );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "HexInput", _bufHexagonInput );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "BorderVertices", _bufBorderVerticesOut );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveIDs", _bufActiveIDs );
+        ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderTriangles", _bufActiveBorderTriangles );
+        if ( ActiveHexagons.Count / 8 > 1024 )
+        {
+            Debug.LogError( "Ohnoo nononon this actually happens frick" );
 
-        gpuUtils.TrisToVerts( ref _cmptActiveBorderTriangles, ref _cmptActiveBorderVertices, bordercount );
-        Mat_Border.SetBuffer( "BVertices", _cmptActiveBorderVertices );
+        }
+        else ComputeTerrainShader.Dispatch( kernelHandleBuildBorder, ActiveHexagons.Count / 8, 1, 1 );
+
+        gpuUtils.TrisToVerts( ref _bufActiveBorderTriangles, ref _bufActiveBorderVertices, bordercount );
+        Mat_Border.SetBuffer( "BVertices", _bufActiveBorderVertices );
     }
 
     private void SetActiveIDBuffer()
     {
         if ( ActiveHexagons.Count <= 0 ) return;
 
-        if ( _cmptActiveIDs != null ) _cmptActiveIDs.Dispose();
+        if ( _bufActiveIDs != null ) _bufActiveIDs.Dispose();
 
-        _cmptActiveIDs = new ComputeBuffer( ActiveHexagons.Count, sizeof( uint ), ComputeBufferType.Append );
-        _cmptActiveIDs.SetCounterValue( (uint)ActiveHexagons.Count );
-        _cmptActiveIDs.SetData( ActiveHexagons.ToArray() );
+        _bufActiveIDs = new ComputeBuffer( ActiveHexagons.Count, sizeof( uint ), ComputeBufferType.Append );
+        _bufActiveIDs.SetCounterValue( (uint)ActiveHexagons.Count );
+        _bufActiveIDs.SetData( ActiveHexagons.ToArray() );
 
     }
 
@@ -141,44 +143,50 @@ public class TerrainRenderer
 
     private void ComputeActiveHexagons()
     {
-        if ( _cmptVerticesAlt != null ) _cmptVerticesAlt.Dispose();
+        if ( _bufVerticesOutALT != null ) _bufVerticesOutALT.Dispose();
 
-        _cmptActiveIDs.SetCounterValue( (uint)ActiveHexagons.Count );
-        _cmptVerticesAlt = new ComputeBuffer( ActiveHexagons.Count * 96, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
+        _bufActiveIDs.SetCounterValue( (uint)ActiveHexagons.Count );
+        _bufVerticesOutALT = new ComputeBuffer( ActiveHexagons.Count * 96, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
 
 
         int kernel = ComputeTerrainShader.FindKernel( "AppendHexagons" );
-        ComputeTerrainShader.SetBuffer( kernel, "Vertices", _cmptBufferOut );
-        ComputeTerrainShader.SetBuffer( kernel, "ActiveIDs", _cmptActiveIDs );
-        ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _cmptVerticesAlt );
-        ComputeTerrainShader.Dispatch( kernel, ActiveHexagons.Count / 8, 1, 1 );
+        ComputeTerrainShader.SetBuffer( kernel, "Vertices", _bufVerticesOut );
+        ComputeTerrainShader.SetBuffer( kernel, "ActiveIDs", _bufActiveIDs );
+        ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _bufVerticesOutALT );
 
-        MatTerrain.SetBuffer( "Vertices", _cmptVerticesAlt );
+        if ( ( ActiveHexagons.Count / NUM_THREADS ) > 1024 )
+        {
+            Debug.LogError( "Ohnoo nononon this actually happens frick Pt.2" );
+
+        }
+        else ComputeTerrainShader.Dispatch( kernel, ActiveHexagons.Count / NUM_THREADS, ActiveHexagons.Count / NUM_THREADS, 1 );
+
+        MatTerrain.SetBuffer( "Vertices", _bufVerticesOutALT );
     }
 
-    private void SetToRemoveBuffer(uint[] ids)
+    private void SetToRemoveBuffer( uint[] ids )
     {
-        if ( _cmptRemoveIDs != null ) _cmptRemoveIDs.Dispose();
+        if ( _bufRemoveIDs != null ) _bufRemoveIDs.Dispose();
 
-        _cmptRemoveIDs = new ComputeBuffer( ids.Length, sizeof( uint ), ComputeBufferType.Append );
-        _cmptRemoveIDs.SetData( ids );
+        _bufRemoveIDs = new ComputeBuffer( ids.Length, sizeof( uint ), ComputeBufferType.Append );
+        _bufRemoveIDs.SetData( ids );
 
     }
 
-    private void ComputeRemoveHexagons( int count)
+    private void ComputeRemoveHexagons( int count )
     {
-       // if ( _cmptVerticesAlt != null ) _cmptVerticesAlt.Dispose();
+        // if ( _cmptVerticesAlt != null ) _cmptVerticesAlt.Dispose();
 
-        _cmptRemoveIDs.SetCounterValue( (uint)count );
+        _bufRemoveIDs.SetCounterValue( (uint)count );
         //_cmptVerticesAlt = new ComputeBuffer( ActiveHexagons.Count * 96, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
-        
+
 
         int kernel = ComputeTerrainShader.FindKernel( "RemoveHexagons" );
-        ComputeTerrainShader.SetBuffer( kernel, "ToRemoveHexIDs", _cmptRemoveIDs );
-        ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _cmptVerticesAlt );
+        ComputeTerrainShader.SetBuffer( kernel, "ToRemoveHexIDs", _bufRemoveIDs );
+        ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _bufVerticesOutALT );
         ComputeTerrainShader.Dispatch( kernel, count, 1, 1 );
 
-        MatTerrain.SetBuffer( "Vertices", _cmptVerticesAlt );
+        MatTerrain.SetBuffer( "Vertices", _bufVerticesOutALT );
     }
 
 
@@ -221,7 +229,7 @@ public class TerrainRenderer
     }
 
 
-    public void AddHexagonToRenderer(int x, int y, Hexagon h)
+    public void AddHexagonToRenderer( int x, int y, Hexagon h )
     {
         _hexagons[x, y] = h;
         _hexBuffer[x, y] = h.gpu;
@@ -229,13 +237,13 @@ public class TerrainRenderer
 
     public void CleanUp()
     {
-        if ( _cmptBufferOut != null ) _cmptBufferOut.Dispose();
-        if ( _cmptBufferHexagons != null ) _cmptBufferHexagons.Dispose();
-        if ( _cmptBorderOut != null ) _cmptBorderOut.Dispose();
-        if ( _cmptActiveIDs != null ) _cmptActiveIDs.Dispose();
-        if ( _cmptActiveBorderVertices != null ) _cmptActiveBorderVertices.Dispose();
-        if ( _cmptActiveBorderTriangles != null ) _cmptActiveBorderTriangles.Dispose();
-        if ( _cmptVerticesAlt != null ) _cmptVerticesAlt.Dispose();
-        if ( _cmptRemoveIDs != null ) _cmptRemoveIDs.Dispose();
+        if ( _bufVerticesOut != null ) _bufVerticesOut.Dispose();
+        if ( _bufHexagonInput != null ) _bufHexagonInput.Dispose();
+        if ( _bufBorderVerticesOut != null ) _bufBorderVerticesOut.Dispose();
+        if ( _bufActiveIDs != null ) _bufActiveIDs.Dispose();
+        if ( _bufActiveBorderVertices != null ) _bufActiveBorderVertices.Dispose();
+        if ( _bufActiveBorderTriangles != null ) _bufActiveBorderTriangles.Dispose();
+        if ( _bufVerticesOutALT != null ) _bufVerticesOutALT.Dispose();
+        if ( _bufRemoveIDs != null ) _bufRemoveIDs.Dispose();
     }
 }

@@ -7,7 +7,7 @@ using System;
 
 
 
-[RequireComponent (typeof(MeshRenderer))] 
+[RequireComponent( typeof( MeshRenderer ) )]
 public class GridRenderer : InstantiatedGridComponent
 {
     private ComputeBuffer gridVertBuffer;
@@ -41,7 +41,7 @@ public class GridRenderer : InstantiatedGridComponent
 
 
     private void InitRasterBuffer()
-    {        
+    {
         if ( Grid.RasterVertices != null && Grid.RasterVertices.Length > 0 ) indicesRaster = Grid.RasterVertices.Length;
 
         if ( indicesRaster <= 0 ) return;
@@ -61,7 +61,7 @@ public class GridRenderer : InstantiatedGridComponent
 
 
     private void OnDisable()
-    {       
+    {
         if ( gridVertBuffer != null ) gridVertBuffer.Dispose();
 
         Grid.CleanUp();
@@ -115,13 +115,15 @@ public class GridRenderer : InstantiatedGridComponent
         if ( !cam ) return;
 
         DrawMesh( cam );
-      //  DrawRaster( cam );
+        //  DrawRaster( cam );
 
 
     }
     private void DrawMesh( Camera cam )
     {
-        if ( camsRaster.ContainsKey( cam ) ) return;
+        if ( camsMesh.ContainsKey( cam ) ) return;
+
+        Debug.Log( "Draw Mesh call" );
 
         // Init Cmd Buffer
         CommandBuffer cmdMesh = new CommandBuffer();
@@ -129,7 +131,7 @@ public class GridRenderer : InstantiatedGridComponent
         camsMesh[cam] = cmdMesh;
 
         // Draw Terrain
-        
+
         DrawTerrainMesh( cmdMesh );
 
         // Add Cmd Buffer
@@ -143,7 +145,7 @@ public class GridRenderer : InstantiatedGridComponent
 
 
 
-    private void DrawRaster(Camera cam)
+    private void DrawRaster( Camera cam )
     {
         if ( camsRaster.ContainsKey( cam ) ) return;
 
