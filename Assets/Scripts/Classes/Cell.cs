@@ -4,8 +4,7 @@ using UnityEngine;
 using System;
 
 [Serializable]
-public class Cell
-{
+public class Cell {
     public Vector2Int ColRow;
     public Vector3 WorldPos;
     public bool ElevatedOnZ;
@@ -17,53 +16,42 @@ public class Cell
     public Vector3 Center;
 
 
-    public void SetNeighbours(int gridsize)
-    {
-      //  List<Vector2> n = new List<Vector2>();
+    public void SetNeighbours( int gridsize ) {
+
         IsConnected = new bool[6];
         // get neighbour cells depending on own position
         //Debug.Log( $"Searching Neighbours for Col: {ColRow.x}, Row: {ColRow.y}" );
-        if (ColRow.x == 0)
-        {
+        if ( ColRow.x == 0 ) {
 
-            if ( ColRow.y != 0)
-            {
+            if ( ColRow.y != 0 ) {
                 // 2, 3
                 IsConnected[2] = true;
                 IsConnected[3] = true;
                 //Debug.Log( "2, 3" );
             }
 
-            if ( ColRow.y != gridsize - 1 )
-            {
+            if ( ColRow.y != gridsize - 1 ) {
                 // 0 , 1
                 IsConnected[0] = true;
                 IsConnected[1] = true;
                 if ( ColRow.x % 2 != 0 ) IsConnected[2] = true;
             }
-        }
-        else if ( ColRow.x == gridsize - 1)
-        {
+        } else if ( ColRow.x == gridsize - 1 ) {
 
-            if ( ColRow.y != 0 )
-            {
+            if ( ColRow.y != 0 ) {
                 // 4 , 3
                 IsConnected[4] = true;
                 IsConnected[3] = true;
             }
 
-            if ( ColRow.y != gridsize - 1)
-            {
+            if ( ColRow.y != gridsize - 1 ) {
                 // 5 , 0
                 IsConnected[5] = true;
                 IsConnected[0] = true;
                 if ( ColRow.x % 2 != 0 ) IsConnected[4] = true;
             }
-        }
-        else
-        {
-            if ( ColRow.y != 0 && ColRow.y != gridsize - 1 )
-            {
+        } else {
+            if ( ColRow.y != 0 && ColRow.y != gridsize - 1 ) {
                 // 3 , 2 , 1, 0
                 IsConnected[0] = true;
                 IsConnected[1] = true;
@@ -72,24 +60,20 @@ public class Cell
                 IsConnected[4] = true;
                 IsConnected[5] = true;
 
-            }
-            else if ( ColRow.y == 0 )
-            {
+            } else if ( ColRow.y == 0 ) {
                 // 0 , 1 , 5
                 IsConnected[0] = true;
                 IsConnected[1] = true;
                 IsConnected[5] = true;
 
-                if ( ColRow.x % 2 != 0) // odd
+                if ( ColRow.x % 2 != 0 ) // odd
                 {
                     // 0 , 1 , 2, 5 , 4
                     IsConnected[2] = true;
                     IsConnected[4] = true;
                 }
 
-            }
-            else if ( ColRow.y == gridsize - 1)
-            {
+            } else if ( ColRow.y == gridsize - 1 ) {
 
                 IsConnected[3] = true;
                 IsConnected[2] = true;
@@ -184,97 +168,97 @@ public class Cell
     //}
 
 
- //   private Vector3[] GenHexagonMeshInfo( Cell cell, Vector3 center, Vector3[] oVerts ) // TODO: REFACTOR
- //   {
- //       // verts
- //       Vector3[] verts = new Vector3[24 + 2];
- //       int[] otherIndices = new int[( 3 * 24 ) + 36];
- //       int[] topPlane = new int[3 * 12];
- //       int c = 1;
- //     //  Vector3 cTop = new Vector3( center.x, center.y + Grid.TileThickness, center.z ); // index 13
- //       Vector3 cBot = center; // index 0
- //       verts[0] = cBot;
- ////       verts[13] = cTop;
+    //   private Vector3[] GenHexagonMeshInfo( Cell cell, Vector3 center, Vector3[] oVerts ) // TODO: REFACTOR
+    //   {
+    //       // verts
+    //       Vector3[] verts = new Vector3[24 + 2];
+    //       int[] otherIndices = new int[( 3 * 24 ) + 36];
+    //       int[] topPlane = new int[3 * 12];
+    //       int c = 1;
+    //     //  Vector3 cTop = new Vector3( center.x, center.y + Grid.TileThickness, center.z ); // index 13
+    //       Vector3 cBot = center; // index 0
+    //       verts[0] = cBot;
+    ////       verts[13] = cTop;
 
- //  //     cell.Center = cTop;
-
-
- //       for ( int i = 0; i < oVerts.Length; i++ )
- //       {
- //           verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
- //           verts[c + 1] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
- //           c += 2;
- //       }
- //       c = 14;
- //       for ( int i = 0; i < oVerts.Length; i++ )
- //       {
- //           verts[c] = oVerts[i];
- //           verts[c + 1] = oVerts[i];
- //           c += 2;
- //       }
+    //  //     cell.Center = cTop;
 
 
- //       // indices
- //       c = 0;
-
- //       // sides
- //       for ( int i = 0; i < 5; i++ )
- //       {
- //           otherIndices[c] = 15 + ( i * 2 );
- //           otherIndices[c + 1] = ( i * 2 ) + 2;
- //           otherIndices[c + 2] = 15 + ( i * 2 ) + 2;
-
- //           otherIndices[c + 3] = ( i * 2 ) + 2;
- //           otherIndices[c + 4] = ( i * 2 ) + 4;
- //           otherIndices[c + 5] = 15 + ( i * 2 ) + 2;
-
- //           c += 6;
- //       }
-
- //       otherIndices[c] = 12;
- //       otherIndices[c + 1] = 15;
- //       otherIndices[c + 2] = 25;
-
- //       otherIndices[c + 3] = 15;
- //       otherIndices[c + 4] = 12;
- //       otherIndices[c + 5] = 2;
+    //       for ( int i = 0; i < oVerts.Length; i++ )
+    //       {
+    //           verts[c] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+    //           verts[c + 1] = new Vector3( oVerts[i].x, 0, oVerts[i].z );
+    //           c += 2;
+    //       }
+    //       c = 14;
+    //       for ( int i = 0; i < oVerts.Length; i++ )
+    //       {
+    //           verts[c] = oVerts[i];
+    //           verts[c + 1] = oVerts[i];
+    //           c += 2;
+    //       }
 
 
- //       c += 6;
- //       // bottom hex plane
- //       for ( int i = 1; i < 11; i += 2 )
- //       {
- //           otherIndices[c] = 0;
- //           otherIndices[c + 1] = i + 2;
- //           otherIndices[c + 2] = i;
- //           c += 3;
- //       }
- //       otherIndices[c] = 0;
- //       otherIndices[c + 1] = 1;
- //       otherIndices[c + 2] = 11;
+    //       // indices
+    //       c = 0;
+
+    //       // sides
+    //       for ( int i = 0; i < 5; i++ )
+    //       {
+    //           otherIndices[c] = 15 + ( i * 2 );
+    //           otherIndices[c + 1] = ( i * 2 ) + 2;
+    //           otherIndices[c + 2] = 15 + ( i * 2 ) + 2;
+
+    //           otherIndices[c + 3] = ( i * 2 ) + 2;
+    //           otherIndices[c + 4] = ( i * 2 ) + 4;
+    //           otherIndices[c + 5] = 15 + ( i * 2 ) + 2;
+
+    //           c += 6;
+    //       }
+
+    //       otherIndices[c] = 12;
+    //       otherIndices[c + 1] = 15;
+    //       otherIndices[c + 2] = 25;
+
+    //       otherIndices[c + 3] = 15;
+    //       otherIndices[c + 4] = 12;
+    //       otherIndices[c + 5] = 2;
+
+
+    //       c += 6;
+    //       // bottom hex plane
+    //       for ( int i = 1; i < 11; i += 2 )
+    //       {
+    //           otherIndices[c] = 0;
+    //           otherIndices[c + 1] = i + 2;
+    //           otherIndices[c + 2] = i;
+    //           c += 3;
+    //       }
+    //       otherIndices[c] = 0;
+    //       otherIndices[c + 1] = 1;
+    //       otherIndices[c + 2] = 11;
 
 
 
- //       // top hex plane
- //       c = 0;
- //       for ( int i = 14; i < 24; i += 2 )
- //       {
- //           topPlane[c] = i;
- //           topPlane[c + 1] = i + 2;
- //           topPlane[c + 2] = 13;
- //           c += 3;
- //       }
- //       topPlane[c] = 24;
- //       topPlane[c + 1] = 14;
- //       topPlane[c + 2] = 13;
+    //       // top hex plane
+    //       c = 0;
+    //       for ( int i = 14; i < 24; i += 2 )
+    //       {
+    //           topPlane[c] = i;
+    //           topPlane[c + 1] = i + 2;
+    //           topPlane[c + 2] = 13;
+    //           c += 3;
+    //       }
+    //       topPlane[c] = 24;
+    //       topPlane[c + 1] = 14;
+    //       topPlane[c + 2] = 13;
 
 
- //       cell.HVerts = verts;
- //       cell.HIndicesTop = topPlane;
- //       cell.HIndicesSides = otherIndices;
+    //       cell.HVerts = verts;
+    //       cell.HIndicesTop = topPlane;
+    //       cell.HIndicesSides = otherIndices;
 
- //       return verts;
- //   }
+    //       return verts;
+    //   }
 
 
 }

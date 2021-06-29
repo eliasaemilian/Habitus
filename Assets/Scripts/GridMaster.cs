@@ -2,22 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridMaster : InstantiatedGridComponent
-{  
+public class GridMaster : InstantiatedGridComponent {
     float r; float w;
 
 
-
-
-    private void Update()
-    {
+    private void Update() {
         if ( Input.GetMouseButtonUp( 0 ) ) OnClickNeighbourDebug();
-      
-    }
-    private void ClearGrid()
-    {
-        if ( Grid.Cells == null || Grid.Cells.Length <= 0 ) return;
 
+    }
+    private void ClearGrid() {
+        if ( Grid.Cells == null || Grid.Cells.Length <= 0 ) return;
 
         Grid.CleanUp();
     }
@@ -25,13 +19,11 @@ public class GridMaster : InstantiatedGridComponent
     public void OnClickClearGrid() => ClearGrid();
 
 
-    public bool GetCellOnClick(out Vector2Int hex)
-    {
+    public bool GetCellOnClick( out Vector2Int hex ) {
         hex = new Vector2Int();
         Plane plane = new Plane( Vector3.up, 0 );
         Ray ray = Camera.main.ScreenPointToRay( new Vector3( Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y - Grid.TileThickness ) );
-        if ( plane.Raycast( ray, out float pldist ) )
-        {
+        if ( plane.Raycast( ray, out float pldist ) ) {
             Vector3 p = ray.GetPoint( pldist );
 
             float col; float row;
@@ -50,14 +42,12 @@ public class GridMaster : InstantiatedGridComponent
             Vector2 pos = new Vector2( p.x, p.z );
 
             // Search for the nearest hexagon
-            float minimum = 2 * Grid.TileWidth;  
+            float minimum = 2 * Grid.TileWidth;
             for ( int x = tC - 1; x <= tC + 1; ++x )
-                for ( int y = tR - 1; y <= tR + 1; ++y )
-                {
+                for ( int y = tR - 1; y <= tR + 1; ++y ) {
                     if ( x < 0 || x >= Grid.Size || y < 0 || y >= Grid.Size ) continue;
                     float dist = Vector2.Distance( new Vector2( Grid.Cells[x, y].WorldPos.x, Grid.Cells[x, y].WorldPos.z ), pos );
-                    if ( dist < minimum )
-                    {
+                    if ( dist < minimum ) {
                         minimum = dist;
                         hex.x = x;
                         hex.y = y;
@@ -71,17 +61,15 @@ public class GridMaster : InstantiatedGridComponent
 
     // ------------------------------------------------------------- DEBUG FUNCTIONS ------------------------------------------------------------ //
 
-    public void OnClickNeighbourDebug()
-    {
+    public void OnClickNeighbourDebug() {
         Debug.Log( "Click" );
-        if ( GetCellOnClick( out Vector2Int hex ) )
-        {
+        if ( GetCellOnClick( out Vector2Int hex ) ) {
 
-          //  Grid.Cells[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
-          //  Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.Size );
+            //  Grid.Cells[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
+            //  Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.Size );
             Debug.Log( $"Clicked on Col: {Grid.Cells[hex.x, hex.y].ColRow.x}, Row: {Grid.Cells[hex.x, hex.y].ColRow.y}." );
             uint id = Grid.GetHexIDByColRow( hex.y, hex.x );
-           
+
             Grid.RemoveHexagon( new uint[] { id } );
             Debug.Log( "Removed " + id );
         }
@@ -91,8 +79,7 @@ public class GridMaster : InstantiatedGridComponent
     #region CPU ALT TODO
     // ---------------------------------------- CPU ALT CODE ---------------------------------------- //
     // TODO: Implement as alt if Computeshaders are not supported by gpu
-    private void GenGridVertices()
-    {
+    private void GenGridVertices() {
         if ( Grid.GridPoints.Length <= 0 ) return;
 
         // vertices
@@ -102,8 +89,7 @@ public class GridMaster : InstantiatedGridComponent
         r = Grid.TileHeight * .5f;
         w = Grid.TileWidth * .5f;
 
-        for ( int i = 0; i < Grid.CenterPoints.Length; i++ )
-        {
+        for ( int i = 0; i < Grid.CenterPoints.Length; i++ ) {
             Vector3 c = new Vector3( Grid.CenterPoints[i].x, 0, Grid.CenterPoints[i].z ); // center of tile
             float y = Grid.TileThickness;
 
@@ -121,47 +107,37 @@ public class GridMaster : InstantiatedGridComponent
             // vertices
             if ( cell.ColRow.y == 0 ) // ROW 0
             {
-                if ( cell.ColRow.x == 0 )
-                {
+                if ( cell.ColRow.x == 0 ) {
                     cverts.Add( p1 );
                     cverts.Add( p2 );
                     cverts.Add( p3 );
                     cverts.Add( p4 );
                     cverts.Add( p5 );
                     cverts.Add( p6 );
-                }
-                else
-                {
+                } else {
                     cverts.Add( p1 );
                     cverts.Add( p2 );
 
-                    if ( cell.ColRow.x % 2 != 0 )
-                    {
+                    if ( cell.ColRow.x % 2 != 0 ) {
                         cverts.Add( p5 );
-                    }
-                    else cverts.Add( p3 );
+                    } else cverts.Add( p3 );
 
                     cverts.Add( p6 );
                 }
-            }
-            else // all ROWS 1 TO END
-            {
+            } else // all ROWS 1 TO END
+              {
                 if ( cell.ColRow.x == 0 ) // COLUMN 0
                 {
                     cverts.Add( p4 );
                     cverts.Add( p5 );
-                }
-
-                else // ROWS 1 TO END
-                {
+                } else // ROWS 1 TO END
+                  {
                     // Column ODDS
-                    if ( cell.ColRow.x % 2 != 0 )
-                    {
+                    if ( cell.ColRow.x % 2 != 0 ) {
                         cverts.Add( p1 );
                         cverts.Add( p5 );
-                    }
-                    else // Column EVEN
-                    {
+                    } else // Column EVEN
+                      {
                         if ( cell.ColRow.x == Grid.Size - 1 ) cverts.Add( p1 ); //repl. col
                     }
 
@@ -176,28 +152,23 @@ public class GridMaster : InstantiatedGridComponent
 
         }
 
-        for ( int i = 0; i < Grid.CenterPoints.Length; i++ )
-        {
+        for ( int i = 0; i < Grid.CenterPoints.Length; i++ ) {
             indices.AddRange( CalcIndicesGridPoints( Grid.CellsQueued[i] ) );
         }
 
 
         Grid.RasterVertices = new Vector3[indices.Count];
 
-        for ( int j = 0; j < Grid.RasterVertices.Length; j++ )
-        {
+        for ( int j = 0; j < Grid.RasterVertices.Length; j++ ) {
             Grid.RasterVertices[j] = verts[indices[j]];
         }
 
     }
-   
-    private List<int> CalcIndicesGridPoints( Cell cell )
-    {
+
+    private List<int> CalcIndicesGridPoints( Cell cell ) {
         List<int> indices = new List<int>();
-        if ( cell.ColRow.y == 0 )
-        {
-            if ( cell.ColRow.x == 0 )
-            {
+        if ( cell.ColRow.y == 0 ) {
+            if ( cell.ColRow.x == 0 ) {
                 indices.Add( 0 );
                 indices.Add( 1 );
                 indices.Add( 1 );
@@ -210,9 +181,8 @@ public class GridMaster : InstantiatedGridComponent
                 indices.Add( 5 );
                 indices.Add( 5 );
                 indices.Add( 0 );
-            }
-            else if ( cell.ColRow.x % 2 != 0 ) // ODDS
-            {
+            } else if ( cell.ColRow.x % 2 != 0 ) // ODDS
+              {
                 int current = 6;
                 if ( cell.ColRow.x > 1 ) current = 6 + ( 4 * ( (int)cell.ColRow.x - 1 ) );
                 int past = 0;
@@ -237,9 +207,8 @@ public class GridMaster : InstantiatedGridComponent
                 indices.Add( current + 3 );
                 indices.Add( current );
 
-            }
-            else // EVENS
-            {
+            } else // EVENS
+              {
                 int current = 6 + ( 4 * ( (int)cell.ColRow.x - 1 ) );
                 int past = 6 + ( 4 * ( (int)( cell.ColRow.x - 2 ) ) );
 
@@ -263,15 +232,13 @@ public class GridMaster : InstantiatedGridComponent
 
             }
 
-        }
-        else  // ROW 1 & ABOVE
-        {
+        } else  // ROW 1 & ABOVE
+          {
             int row0 = 6 + ( ( Grid.Size - 1 ) * 4 ); // repl col for all 3
             int half = ( Grid.Size / 2 );
             int odd = ( Grid.Size % 2 != 0 ) ? 1 : 0;
 
-            if ( cell.ColRow.x == 0 )
-            {
+            if ( cell.ColRow.x == 0 ) {
 
                 int row = 3 + ( 3 * ( half ) ) + ( half ) + 1;
                 if ( odd == 0 ) row = 3 + ( 3 * ( half ) ) + ( half - 1 );
@@ -284,8 +251,7 @@ public class GridMaster : InstantiatedGridComponent
 
                 if ( cell.ColRow.y > 1 ) pastRow = row0 + ( ( ( (int)cell.ColRow.y - 2 ) * row ) );
 
-                if ( cell.ColRow.y != 1 )
-                {
+                if ( cell.ColRow.y != 1 ) {
                     indices.Add( pastRow + 1 );
                     indices.Add( current );
 
@@ -297,9 +263,7 @@ public class GridMaster : InstantiatedGridComponent
 
                     indices.Add( current + 2 );
                     indices.Add( pastRow + 4 );
-                }
-                else
-                {
+                } else {
                     indices.Add( pastRow + 8 );
                     indices.Add( pastRow + 5 );
 
@@ -316,9 +280,8 @@ public class GridMaster : InstantiatedGridComponent
                     indices.Add( pastRow + 8 );
                 }
 
-            }
-            else if ( cell.ColRow.x % 2 != 0 ) // ODDS 
-            {
+            } else if ( cell.ColRow.x % 2 != 0 ) // ODDS 
+              {
 
                 int curHalf = ( (int)cell.ColRow.x - 1 ) / 2;
 
@@ -338,13 +301,10 @@ public class GridMaster : InstantiatedGridComponent
                 if ( cell.ColRow.y > 1 ) pastRow = ( Mathf.Clamp( ( (int)cell.ColRow.y - 2 ), 0, (int)cell.ColRow.y ) * ( row ) ) + thisRowAdded + row0;
                 if ( cell.ColRow.x > 1 ) pastRow += 1;
 
-                if ( cell.ColRow.x == 1 && cell.ColRow.y == 1 )
-                {
+                if ( cell.ColRow.x == 1 && cell.ColRow.y == 1 ) {
                     indices.Add( current );
                     indices.Add( pastRow + 3 );
-                }
-                else
-                {
+                } else {
                     indices.Add( current );
                     indices.Add( pastRow + 2 );
                 }
@@ -359,9 +319,8 @@ public class GridMaster : InstantiatedGridComponent
                 indices.Add( current );
 
 
-            }
-            else // EVENS
-            {
+            } else // EVENS
+              {
 
                 int curHalf = ( (int)cell.ColRow.x ) / 2;
 
@@ -390,9 +349,7 @@ public class GridMaster : InstantiatedGridComponent
                     if ( cell.ColRow.y > 1 ) indices.Add( pastRow + 1 );
                     else indices.Add( pastRow + 3 );
 
-                }
-                else
-                {
+                } else {
                     indices.Add( current - 3 );
                     indices.Add( current );
 

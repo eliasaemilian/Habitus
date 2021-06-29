@@ -8,7 +8,6 @@
 #define NUM_THREADS  ( 8 )
 
 
-
 RWStructuredBuffer<Hexagon> HexInput;
 RWStructuredBuffer<Vertex> Vertices; // OUT
 ConsumeStructuredBuffer<uint> ActiveIDs;
@@ -21,8 +20,7 @@ float4 _Size;
 
 
 
-void AddTriangle( inout uint n, float type, float3 a, float3 b, float3 c )
-{
+void AddTriangle( inout uint n, float type, float3 a, float3 b, float3 c ) {
     Vertices[n].pos = float4( a, type );
     Vertices[n + 1].pos = float4( b, type );
     Vertices[n + 2].pos = float4( c, type );
@@ -34,8 +32,7 @@ void AddTriangle( inout uint n, float type, float3 a, float3 b, float3 c )
 
 void AddTessFullQuad( inout uint n, float type, float3 t, float3 te[4] ) // right, down, left, up with t as middle point, 15 verts
 {
-    for ( uint i = 0; i < 3; i++ )
-    {
+    for ( uint i = 0; i < 3; i++ ) {
         AddTriangle( n, type, t, te[i], te[i + 1] );
     }
     AddTriangle( n, type, t, te[i], te[0] );
@@ -57,28 +54,24 @@ void AddTessFullQuad( inout uint n, float type, float3 t, float3 r, float3 rd, f
     AddTriangle( n, type, u, r, ur );
 }
 
-void AddTessTopHalf( inout uint n, float type, float3 t, float3 r, float3 d, float3 l )
-{
+void AddTessTopHalf( inout uint n, float type, float3 t, float3 r, float3 d, float3 l ) {
     AddTriangle( n, type, t, r, d );
     AddTriangle( n, type, t, d, l );
 }
 
-void AddTessTopHalf( inout uint n, float type, float3 t, float3 r, float3 rd, float3 d, float3 dl, float3 l )
-{
+void AddTessTopHalf( inout uint n, float type, float3 t, float3 r, float3 rd, float3 d, float3 dl, float3 l ) {
     AddTriangle( n, type, t, r, rd );
     AddTriangle( n, type, t, rd, d );
     AddTriangle( n, type, t, d, dl );
     AddTriangle( n, type, t, dl, l );
 }
 
-void AddTessBottomHalf( inout uint n, float type, float3 t, float3 r, float3 l, float3 u )
-{
+void AddTessBottomHalf( inout uint n, float type, float3 t, float3 r, float3 l, float3 u ) {
     AddTriangle( n, type, t, u, r );
     AddTriangle( n, type, t, l, u );
 }
 
-void AddTessBottomHalf( inout uint n, float type, float3 t, float3 r, float3 l, float3 lu, float3 u, float3 ur )
-{
+void AddTessBottomHalf( inout uint n, float type, float3 t, float3 r, float3 l, float3 lu, float3 u, float3 ur ) {
     AddTriangle( n, type, t, l, lu );
     AddTriangle( n, type, t, lu, u );
     AddTriangle( n, type, t, u, ur );
@@ -86,11 +79,15 @@ void AddTessBottomHalf( inout uint n, float type, float3 t, float3 r, float3 l, 
 }
 
 
+
+uint n, i;
+
 [numthreads( NUM_THREADS, NUM_THREADS, 1 )]
-void GenGridVertices( uint3 id : SV_DispatchThreadID )
-{
-    uint n;
-      
+void GenGridVertices( uint3 id : SV_DispatchThreadID ) {
+    uint hid = id.x + id.y * GRID_SIZE_X;
+    if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y || hid > GRID_SIZE_X * GRID_SIZE_Y )
+        return;
+         
     float r = HEX_RADIUS;
     float hr = r * .5;
     float hhr = hr * .5;
@@ -98,19 +95,13 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     float w = HEX_WIDTH;
     float hw = w * .5;
     float hhw = hw * .5;
-            
-    uint hid = id.x + id.y * GRID_SIZE_X;
-    if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y || hid > GRID_SIZE_X * GRID_SIZE_Y )
-        return;
-   
            
     float3 c = HexInput[hid].center.xyz;
     float type = HexInput[hid].center.w;
 
     
     // Hex Verts
-    float3 verts[6] =
-    {
+    float3 verts[6] = {
         float3( c.x + r, c.y, c.z ),
         float3( c.x + hr, c.y, c.z - w ),
         float3( c.x - hr, c.y, c.z - w ),
@@ -118,42 +109,38 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
         float3( c.x - hr, c.y, c.z + w ),
         float3( c.x + hr, c.y, c.z + w )
     };
-    for ( uint i = 0; i < 6; i++ )
+    for ( i = 0; i < 6; i++ )
         HexInput[hid].topverts[i].xyz = verts[i];
         
     // Tesselation Factor 1 
-    float3 t1[4] =
-    {
+    float3 t1[4] = {
         float3( c.x + hr, c.y, c.z ),
         float3( c.x - hr, c.y, c.z ),
         float3( c.x, c.y, c.z - w ),
         float3( c.x, c.y, c.z + w )
     };
-       
-        
-        // Hex Indices
-        
+             
      // Factor 0
-    for ( int j = 0; j < HexInput[hid].tesselation.x; j++ ) // 18 Verts
-    {
+    
+        
+    if ( HexInput[hid].tesselation.x > 0 ) {
         n = hid * 96;
 
-        for ( uint k = 0; k < 5; k++ )
-        {
-            AddTriangle( n, type, verts[k], verts[k + 1], c );
+        for ( i = 0; i < 5; i++ ) {
+            AddTriangle( n, type, verts[i], verts[i + 1], c );
         }
         AddTriangle( n, type, verts[0], c, verts[5] );
-        
     }
+    
          
     
     // Factor 1
-    for ( j = 0; j < HexInput[hid].tesselation.y; j++ )
-    {
+    float3 a[4] = { verts[0], verts[1], c, verts[5] };
+    float3 b[4] = { c, verts[2], verts[3], verts[4] };
+    
+    for ( i = 0; i < (uint)HexInput[hid].tesselation.y; i++ ) {
         n = hid * 96;
         
-        float3 a[4] = { verts[0], verts[1], c, verts[5] };
-        float3 b[4] = { c, verts[2], verts[3], verts[4] };
         AddTessFullQuad( n, type, t1[0], a );
         AddTessFullQuad( n, type, t1[1], b );
 
@@ -163,8 +150,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
     }
 
     //Factor 2  
-    float3 t2[8] =
-    {
+    float3 t2[8] = {
         float3( t1[0].x + hhr, c.y, t1[0].z - hhw ), //a -> 0
             float3( t1[1].x - hhr, c.y, t1[1].z - hhw ), //c -> 1
             float3( t1[1].x - hhr, c.y, t1[1].z + hhw ), //d -> 2
@@ -175,8 +161,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
             float3( c.x + hhr, c.y, c.z + hhw ), //j -> 7                           
     };
         
-    for ( j = 0; j < HexInput[hid].tesselation.z; j++ )
-    {
+    for ( i = 0; i < (uint)HexInput[hid].tesselation.z; i++ ) {
         n = hid * 96;
         
         AddTessFullQuad( n, type, t1[0], verts[0], t2[0], verts[1], t2[4], c, t2[7], verts[5], t2[3] );
@@ -191,13 +176,11 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID )
 RWStructuredBuffer<Vertex> VerticesAlt;
 
 [numthreads( NUM_THREADS, 1, 1 )]
-void AppendHexagons( uint3 id : SV_DispatchThreadID )
-{
+void AppendHexagons( uint3 id : SV_DispatchThreadID ) {
     uint hid = ActiveIDs.Consume();
     
     uint n = hid * 96;
-    for ( uint i = 0; i < 96; i++ )
-    {
+    for ( uint i = 0; i < 96; i++ ) {
         VerticesAlt[n + i] = Vertices[n + i];
         //Triangle tris;
         //tris.v[0] = Vertices[hid + i];
@@ -211,13 +194,11 @@ void AppendHexagons( uint3 id : SV_DispatchThreadID )
 ConsumeStructuredBuffer<uint> ToRemoveHexIDs;
 
 [numthreads( 1, 1, 1 )]
-void RemoveHexagons( uint3 id : SV_DispatchThreadID )
-{
+void RemoveHexagons( uint3 id : SV_DispatchThreadID ) {
     uint hid = ToRemoveHexIDs.Consume();
     
     uint n = hid * 96;
-    for ( uint i = 0; i < 96; i++ )
-    {
+    for ( uint i = 0; i < 96; i++ ) {
         VerticesAlt[n + i].pos = float4( 0, 0, 0, 0 );
     }
 }
@@ -227,8 +208,7 @@ void RemoveHexagons( uint3 id : SV_DispatchThreadID )
 RWStructuredBuffer<Vertex> BorderVertices;
 
 [numthreads( NUM_THREADS, NUM_THREADS, 1 )]
-void GenMeshBorder( uint3 id : SV_DispatchThreadID )
-{
+void GenMeshBorder( uint3 id : SV_DispatchThreadID ) {
     uint hid = id.x + id.y * GRID_SIZE_X;
     if ( id.x > GRID_SIZE_X || id.y > GRID_SIZE_Y || hid > GRID_SIZE_X * GRID_SIZE_Y )
         return;
@@ -242,8 +222,7 @@ void GenMeshBorder( uint3 id : SV_DispatchThreadID )
     uint type = HexInput[hid].center.w;
     // gen indices
            // sides
-    for ( i = 0; i < 5; i++ )
-    {
+    for ( i = 0; i < 5; i++ ) {
         BorderVertices[n].pos = float4( HexInput[hid].topverts[i].xyz, type );
         BorderVertices[n + 1].pos = float4( botverts[i], type );
         BorderVertices[n + 2].pos = float4( HexInput[hid].topverts[i + 1].xyz, type );
@@ -270,22 +249,18 @@ void GenMeshBorder( uint3 id : SV_DispatchThreadID )
 AppendStructuredBuffer<Triangle> ActiveBorderTriangles;
 
 [numthreads( NUM_THREADS, 1, 1 )]
-void BuildActiveBorder( uint3 id : SV_DispatchThreadID )
-{
+void BuildActiveBorder( uint3 id : SV_DispatchThreadID ) {
     uint aid = ActiveIDs.Consume();
     uint n = 0;
 
-    for ( uint i = 0; i < 6; i++ )
-    {
-        uint connected = HexInput[aid].topverts[i].w;
-        if ( connected == 0 )
-        {
-            for ( uint j = 0; j < 6; j += 3 )
-            {
+    for ( uint i = 0; i < 6; i++ ) {
+
+        if ( HexInput[aid].topverts[i].w == 0 ) {
+            for ( uint j = 0; j < 6; j += 3 ) {
                 Vertex v[3];
-                v[0] = BorderVertices[( aid * 36 ) + ( n * 6 + j )];
-                v[1] = BorderVertices[( aid * 36 ) + ( n * 6 + j + 1 )];
-                v[2] = BorderVertices[( aid * 36 ) + ( n * 6 + j + 2 )];
+                v[0] = BorderVertices[(aid * 36) + (n * 6 + j)];
+                v[1] = BorderVertices[(aid * 36) + (n * 6 + j + 1)];
+                v[2] = BorderVertices[(aid * 36) + (n * 6 + j + 2)];
                 Triangle tris;
                 tris.v = v;
                 ActiveBorderTriangles.Append( tris );

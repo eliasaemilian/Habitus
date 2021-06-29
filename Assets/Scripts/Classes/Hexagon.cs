@@ -4,8 +4,7 @@ using UnityEngine;
 using System;
 
 [System.Serializable]
-public class Hexagon
-{
+public class Hexagon {
     private TerrainType _type;
     public TerrainType Type { get { return _type; } }
     public Vector3 Center;
@@ -14,20 +13,17 @@ public class Hexagon
 
     public Vector3[] BorderVertices;
     private bool[] _isConnectedToNeighbour;
-    public int NeighbourConnections
-    {
-        get
-        {
+    public int NeighbourConnections {
+        get {
             int count = 0;
-            for ( int i = 0; i < _isConnectedToNeighbour.Length; i++ ) if( _isConnectedToNeighbour[i] ) count++ ;
+            for ( int i = 0; i < _isConnectedToNeighbour.Length; i++ ) if ( _isConnectedToNeighbour[i] ) count++;
             return count;
-        } 
+        }
     }
 
     public GPU gpu { get { return new GPU( Center, GetGPUTesselationFromType(), Type.ID, _isConnectedToNeighbour ); } }
 
-    public struct GPU
-    {
+    public struct GPU {
         public Vector4 center;
         public Vector4 tesselation;
 
@@ -38,11 +34,10 @@ public class Hexagon
         public Vector4 topvert4;
         public Vector4 topvert5;
 
-        public GPU( Vector3 c, Vector4 t, int id, bool[] connected )
-        {
+        public GPU( Vector3 c, Vector4 t, int id, bool[] connected ) {
             center = new Vector4( c.x, c.y, c.z, id );
             tesselation = t;
-            topvert0 = new Vector4(0,0,0, Convert.ToInt32( connected[2]) );
+            topvert0 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[2] ) );
             topvert1 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[3] ) );
             topvert2 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[4] ) );
             topvert3 = new Vector4( 0, 0, 0, Convert.ToInt32( connected[5] ) );
@@ -55,15 +50,13 @@ public class Hexagon
     };
 
 
-    public Hexagon( int col, int row, Vector3 c, bool[] connected )
-    {
+    public Hexagon( int col, int row, Vector3 c, bool[] connected ) {
         _colRow = new Vector2Int( col, row );
         Center = c;
         _isConnectedToNeighbour = connected;
     }
 
-    private Vector4 GetGPUTesselationFromType()
-    {
+    private Vector4 GetGPUTesselationFromType() {
         if ( Type.Tesselation == 0 ) return new Vector4( 1, 0, 0, 0 );
         if ( Type.Tesselation == 1 ) return new Vector4( 0, 1, 0, 0 );
         if ( Type.Tesselation == 2 ) return new Vector4( 0, 0, 1, 0 );
@@ -75,8 +68,7 @@ public class Hexagon
         return Vector4.zero;
     }
 
-    public void ChangeTerrainType(TerrainType type)
-    {
+    public void ChangeTerrainType( TerrainType type ) {
         _type = type;
     }
 

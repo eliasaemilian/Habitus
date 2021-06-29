@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NewPlaythroughInit : MonoBehaviour
-{
+public class NewPlaythroughInit : MonoBehaviour {
     [SerializeField] private Config_Map _mapConfig = null;
     [SerializeField] private Setup_Render _renderSetup = null;
 
     public Grid DebugGrid;
 
-    private void Awake()
-    {
+    private void Awake() {
         // take config
         Grid grid = InitGrid();
 
@@ -26,8 +24,7 @@ public class NewPlaythroughInit : MonoBehaviour
         // kill self
     }
 
-    private Grid InitGrid()
-    {
+    private Grid InitGrid() {
         Grid grid = new Grid( _renderSetup, _mapConfig );
 
         transform.position = Vector3.zero;
@@ -38,8 +35,7 @@ public class NewPlaythroughInit : MonoBehaviour
         return grid;
     }
 
-    private void InitGridMaster( Grid grid )
-    {
+    private void InitGridMaster( Grid grid ) {
         GameObject gridMaster = new GameObject();
 
         gridMaster.name = "GridMaster";
@@ -49,8 +45,7 @@ public class NewPlaythroughInit : MonoBehaviour
     }
 
 
-    private void InitGridRenderer( Grid grid )
-    {
+    private void InitGridRenderer( Grid grid ) {
         GameObject gridRenderer = new GameObject();
 
         gridRenderer.name = "GridRenderer";

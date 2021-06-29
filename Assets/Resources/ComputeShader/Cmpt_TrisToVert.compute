@@ -7,8 +7,7 @@ ConsumeStructuredBuffer<Triangle> ArgsIn;
 RWStructuredBuffer<Vertex> ArgsOut;
 
 [numthreads( 8, 1, 1 )]
-void TrisToVerticesBuffer( uint3 id : SV_DispatchThreadID )
-{
+void TrisToVerticesBuffer( uint3 id : SV_DispatchThreadID ) {
     uint tid = id.x;
     uint n = tid * 3;
     

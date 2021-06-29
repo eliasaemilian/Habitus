@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MapConfigTest
   m_EditorClassIdentifier: 
   MapName: Standart Map
-  GridSize: 40
+  GridSize: 100
   TileSize: 2
   TileThickness: 0.5
   Mountyness: 0.5

@@ -7,10 +7,7 @@ using System.Runtime.InteropServices;
 
 
 [Serializable]
-public class TerrainRenderer
-{
-    const int NUM_THREADS = 8;
-
+public class TerrainRenderer {
 
     public List<uint> ActiveHexagons = new List<uint>(); // DEBUG: LATER SET BUFFER DIRECTLY
 
@@ -38,8 +35,7 @@ public class TerrainRenderer
 
     private Vector4 _size;
 
-    public TerrainRenderer( int gridSize, float tileHeight, float tileWidth, Setup_Render setup )
-    {
+    public TerrainRenderer( int gridSize, float tileHeight, float tileWidth, Setup_Render setup ) {
         _matTerrain = setup.Mat_Terrain;
         _computeTerrainShader = setup.Compute_Grid;
 
@@ -53,8 +49,7 @@ public class TerrainRenderer
     }
 
 
-    public void ComputeVertexData()
-    {
+    public void ComputeVertexData() {
         CleanUp();
 
         if ( ActiveHexagons.Count <= 0 ) return;
@@ -75,8 +70,11 @@ public class TerrainRenderer
 
         ComputeTerrainShader.SetVector( "_Size", _size );
 
-        ComputeTerrainShader.Dispatch( kernelHandle, ( (int)_size.x * (int)_size.y ) / NUM_THREADS, ( (int)_size.x * (int)_size.y ) / NUM_THREADS, 1 );
-        ComputeTerrainShader.Dispatch( kernelHandleBorder, ( (int)_size.x * (int)_size.y ) / NUM_THREADS, ( (int)_size.x * (int)_size.y ) / NUM_THREADS, 1 );
+        int count = ( ( (int)_size.x * (int)_size.y ) + 63 ) / 64;
+
+        Debug.Log( "Dispatch Vert Data with " + count );
+        ComputeTerrainShader.Dispatch( kernelHandle, count, count, 1 );
+        ComputeTerrainShader.Dispatch( kernelHandleBorder, count / gpuUtils.NUM_THREADS, count / gpuUtils.NUM_THREADS, 1 );
 
 
         RenderProceduralActiveHexagons();
@@ -84,8 +82,8 @@ public class TerrainRenderer
     }
 
 
-    private void ComputeActiveBorder()
-    {
+    private void ComputeActiveBorder() {
+
         int bordercount = GetActiveBorderVCount();
         if ( bordercount <= 0 ) return;
 
@@ -103,19 +101,16 @@ public class TerrainRenderer
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "BorderVertices", _bufBorderVerticesOut );
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveIDs", _bufActiveIDs );
         ComputeTerrainShader.SetBuffer( kernelHandleBuildBorder, "ActiveBorderTriangles", _bufActiveBorderTriangles );
-        if ( ActiveHexagons.Count / 8 > 1024 )
-        {
-            Debug.LogError( "Ohnoo nononon this actually happens frick" );
 
-        }
-        else ComputeTerrainShader.Dispatch( kernelHandleBuildBorder, ActiveHexagons.Count / 8, 1, 1 );
+        int count = ( ActiveHexagons.Count + 63 ) / 64;
+        ComputeTerrainShader.Dispatch( kernelHandleBuildBorder, count, count, 1 );
 
-        gpuUtils.TrisToVerts( ref _bufActiveBorderTriangles, ref _bufActiveBorderVertices, bordercount );
+        gpuUtils.TrisToVerts( ref _bufActiveBorderTriangles, ref _bufActiveBorderVertices, count );
         Mat_Border.SetBuffer( "BVertices", _bufActiveBorderVertices );
     }
 
-    private void SetActiveIDBuffer()
-    {
+    private void SetActiveIDBuffer() {
+
         if ( ActiveHexagons.Count <= 0 ) return;
 
         if ( _bufActiveIDs != null ) _bufActiveIDs.Dispose();
@@ -126,23 +121,20 @@ public class TerrainRenderer
 
     }
 
-    public void RenderProceduralActiveHexagons()
-    {
+    public void RenderProceduralActiveHexagons() {
         SetActiveIDBuffer();
         ComputeActiveHexagons();
         ComputeActiveBorder();
     }
 
-    public void RemoveHexagon( uint[] ids )
-    {
+    public void RemoveHexagon( uint[] ids ) {
         SetToRemoveBuffer( ids );
         ComputeRemoveHexagons( ids.Length );
         SetActiveIDBuffer();
         ComputeActiveBorder();
     }
 
-    private void ComputeActiveHexagons()
-    {
+    private void ComputeActiveHexagons() {
         if ( _bufVerticesOutALT != null ) _bufVerticesOutALT.Dispose();
 
         _bufActiveIDs.SetCounterValue( (uint)ActiveHexagons.Count );
@@ -154,18 +146,16 @@ public class TerrainRenderer
         ComputeTerrainShader.SetBuffer( kernel, "ActiveIDs", _bufActiveIDs );
         ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _bufVerticesOutALT );
 
-        if ( ( ActiveHexagons.Count / NUM_THREADS ) > 1024 )
-        {
-            Debug.LogError( "Ohnoo nononon this actually happens frick Pt.2" );
+        int count = ( ActiveHexagons.Count + 63 ) / 64;
 
-        }
-        else ComputeTerrainShader.Dispatch( kernel, ActiveHexagons.Count / NUM_THREADS, ActiveHexagons.Count / NUM_THREADS, 1 );
+
+        Debug.Log( "Dispatch with " + count );
+        ComputeTerrainShader.Dispatch( kernel, count, count, 1 );
 
         MatTerrain.SetBuffer( "Vertices", _bufVerticesOutALT );
     }
 
-    private void SetToRemoveBuffer( uint[] ids )
-    {
+    private void SetToRemoveBuffer( uint[] ids ) {
         if ( _bufRemoveIDs != null ) _bufRemoveIDs.Dispose();
 
         _bufRemoveIDs = new ComputeBuffer( ids.Length, sizeof( uint ), ComputeBufferType.Append );
@@ -173,13 +163,9 @@ public class TerrainRenderer
 
     }
 
-    private void ComputeRemoveHexagons( int count )
-    {
-        // if ( _cmptVerticesAlt != null ) _cmptVerticesAlt.Dispose();
+    private void ComputeRemoveHexagons( int count ) {
 
         _bufRemoveIDs.SetCounterValue( (uint)count );
-        //_cmptVerticesAlt = new ComputeBuffer( ActiveHexagons.Count * 96, Marshal.SizeOf( typeof( gpuUtils.GridVertex ) ), ComputeBufferType.Default );
-
 
         int kernel = ComputeTerrainShader.FindKernel( "RemoveHexagons" );
         ComputeTerrainShader.SetBuffer( kernel, "ToRemoveHexIDs", _bufRemoveIDs );
@@ -190,8 +176,7 @@ public class TerrainRenderer
     }
 
 
-    private int GetVertexCount()
-    {
+    private int GetVertexCount() {
 
         return HexagonCount * 96;
 
@@ -213,30 +198,25 @@ public class TerrainRenderer
         //return count;
     }
 
-    private int GetBorderVCount()
-    {
+    private int GetBorderVCount() {
         return HexagonCount * 36;
     }
 
-    private int GetActiveBorderVCount()
-    {
+    private int GetActiveBorderVCount() {
         int count = 0;
-        for ( int i = 0; i < _hexagons.GetLength( 0 ); i++ )
-        {
+        for ( int i = 0; i < _hexagons.GetLength( 0 ); i++ ) {
             for ( int j = 0; j < _hexagons.GetLength( 0 ); j++ ) count += _hexagons[i, j].NeighbourConnections * 6;
         }
         return count;
     }
 
 
-    public void AddHexagonToRenderer( int x, int y, Hexagon h )
-    {
+    public void AddHexagonToRenderer( int x, int y, Hexagon h ) {
         _hexagons[x, y] = h;
         _hexBuffer[x, y] = h.gpu;
     }
 
-    public void CleanUp()
-    {
+    public void CleanUp() {
         if ( _bufVerticesOut != null ) _bufVerticesOut.Dispose();
         if ( _bufHexagonInput != null ) _bufHexagonInput.Dispose();
         if ( _bufBorderVerticesOut != null ) _bufBorderVerticesOut.Dispose();

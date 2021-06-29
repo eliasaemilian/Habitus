@@ -2,24 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BenchmarkInit : MonoBehaviour
-{
+public class BenchmarkInit : MonoBehaviour {
 
 
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
         // THIS NEEDS TO WORK WITH A MAP SAVEFILE
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
 
     }
 
-    private void InstantiateHexagons()
-    {
+    private void InstantiateHexagons() {
         // for grid size, instantiate same seed
     }
 }

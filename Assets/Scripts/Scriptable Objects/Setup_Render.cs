@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu( fileName = "Setup_Render", menuName = "Configs/Setups" )]
-public class Setup_Render : Setup
-{
+public class Setup_Render : Setup {
     [Header( "Terrain Renderer" )]
     public ComputeShader Compute_Grid;
     public Material Mat_Terrain;
