@@ -3,6 +3,8 @@
 #pragma kernel BuildActiveBorder
 #pragma kernel AppendHexagons
 #pragma kernel RemoveHexagons
+#pragma kernel ChangeHexagons
+#pragma kernel SerializeMeshData
 #include "MeshStructs.cginc"
 
 #define NUM_THREADS  ( 8 )
@@ -178,15 +180,33 @@ ConsumeStructuredBuffer<uint> ToAddHexIDs;
 [numthreads( 1, 1, 1 )]
 void AppendHexagons( uint3 id : SV_DispatchThreadID ) {
     uint hid = ToAddHexIDs.Consume();
-
-    uint structs, stride;
-    ToAddHexIDs.GetDimensions( structs, stride );
-
     
     uint n = hid * 96;
     for ( uint i = 0; i < 96; i++ ) {
 
         VerticesAlt[n + i].pos = Vertices[n + i].pos;
+       
+        //Triangle tris;
+        //tris.v[0] = Vertices[hid + i];
+        //tris.v[0] = Vertices[hid + i + 1];
+        //tris.v[0] = Vertices[hid + i + 2];
+        //ActiveHexagonTris.Append( tris );
+    }
+    // append hex vertices by offset
+
+}
+
+ConsumeStructuredBuffer<float2> ToChangeHexIDs; // combine all of these // 0 > ID, 1 > New Terrain
+
+[numthreads( 1, 1, 1 )]
+void ChangeHexagons( uint3 id : SV_DispatchThreadID ) {
+    float2 args = ToChangeHexIDs.Consume();
+    uint hid = args.x;
+
+    uint n = hid * 96;
+    for ( uint i = 0; i < 96; i++ ) {
+
+        VerticesAlt[n + i].pos.w = args.y;
        
         //Triangle tris;
         //tris.v[0] = Vertices[hid + i];
@@ -277,3 +297,31 @@ void BuildActiveBorder( uint3 id : SV_DispatchThreadID ) {
     }
 }
 
+
+RWStructuredBuffer<float2> CPUReadback;
+
+[numthreads( 1, 1, 1 )]
+void SerializeMeshData( uint3 id : SV_DispatchThreadID ) {
+    // SEED:
+    // original terrain, tesselation
+    // vertex x & z
+    
+    // CHANGE:
+    // terrain, tesselation
+    // > vertex y [can be retrieved from seed & tesselation
+        
+    // NEEDED:
+    // is active or not
+    // what terrain
+    
+    // create buffer at total id length with stride float2
+    
+    // take in active IDs
+    // if is active, change buffer y to 1
+    uint hid = ActiveIDs.Consume();
+    CPUReadback[hid].y = 1;
+       
+    // Take in ALT Vertex
+    // read terrains into buffer x
+    CPUReadback[hid].x = VerticesAlt[hid * 96].pos.w;
+}

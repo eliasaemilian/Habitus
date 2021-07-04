@@ -5,6 +5,10 @@ using UnityEngine;
 
 [Serializable]
 public class Grid {
+    public Vector2[] SerializeData() {
+        return _terrainRenderer.SerializeFromGPU();
+    }
+
     private int _size;
     public int Size { get { return _size; } }
 
@@ -22,11 +26,25 @@ public class Grid {
     public float TileThickness { get { return _tileThickness; } }
 
     private TerrainType[,] _terrainTypes;
+    public int[] GetTerrainTypeIDs {
+        get {
+
+            int[] types = new int[_terrainTypes.GetLength( 0 ) * _terrainTypes.GetLength( 1 )];
+            int count = 0;
+            for ( int i = 0; i < _terrainTypes.GetLength( 0 ); i++ ) {
+                for ( int j = 0; j < _terrainTypes.GetLength( 1 ); j++ ) {
+                    types[count] = _terrainTypes[i, j].ID;
+                    count++;
+                }
+            }
+            return types;
+        }
+    }
 
     public Matrix4x4 DebugWorldMatrix;
 
     private List<uint> _activeHexagons = new List<uint>();
-    public List<uint> ActiveHexagons { get { return _activeHexagons; } }
+    public List<uint> ActiveHexagons { get { return _activeHexagons; } set { _activeHexagons = value; } }
 
 
     // RASTER
@@ -40,7 +58,7 @@ public class Grid {
     // TERRAIN
     private TerrainRenderer _terrainRenderer;
 
-    public Grid( Setup_Render setup, Config_Map config ) {
+    public Grid( Setup_Render setup, Config_Map config, TerrainType[,] types ) {
         // GRID AND TILE INFORMATION
         _size = config.GridSize;
         _tileHeight = config.TileSize;
@@ -66,7 +84,12 @@ public class Grid {
         InitGridCells();
 
         // INIT TERRAINS
-        InitTerrain( setup, config );
+        InitTerrainRenderer( setup );
+
+        if ( types == null ) InitTerrain( config );
+        else {
+            _terrainTypes = types;
+        }
 
         // Init Hexagons with Border
         InitHexagons();
@@ -94,6 +117,10 @@ public class Grid {
         }
 
         _terrainRenderer.AddHexagon( ids );
+    }
+
+    public void ChangeHexagon( uint[] ids, uint[] terrain ) {
+        _terrainRenderer.ChangeHexagon( ids, terrain );
     }
 
 
@@ -125,8 +152,7 @@ public class Grid {
         }
     }
 
-    private void InitTerrain( Setup_Render setup, Config_Map config ) {
-        InitTerrainRenderer( setup );
+    private void InitTerrain( Config_Map config ) {
         _terrainTypes = MapGeneration.GenerateTerrainTypes( config );
     }
 
@@ -139,7 +165,7 @@ public class Grid {
             for ( int j = 0; j < Cells.GetLength( 1 ); j++ ) {
                 Vector3 center = new Vector3( Cells[i, j].WorldPos.x, Cells[i, j].WorldPos.y + TileThickness, Cells[i, j].WorldPos.z );
                 Hexagon hex = new Hexagon( i, j, center, Cells[i, j].IsConnected );
-                AddHexagon( i, j, hex );
+                InitaddHexagon( i, j, hex );
                 SetHexagonAsActive( i, j ); // FOR DEBUGGING ALL HEXAGONS ARE SET TO ACTIVE
 
             }
@@ -152,7 +178,7 @@ public class Grid {
         _activeHexagons.Add( id );
     }
 
-    public void AddHexagon( int x, int y, Hexagon hex ) {
+    public void InitaddHexagon( int x, int y, Hexagon hex ) {
         hex.ChangeTerrainType( _terrainTypes[x, y] );
         if ( _terrainRenderer != null ) _terrainRenderer.AddHexagonToRenderer( x, y, hex );
     }
@@ -232,7 +258,6 @@ public class Grid {
     }
 
     private void SetActiveHexagonsForRender() {
-        Debug.Log( $"Active Hex: {ActiveHexagons.Count}" );
         _terrainRenderer.ActiveHexagons = ActiveHexagons;
     }
 

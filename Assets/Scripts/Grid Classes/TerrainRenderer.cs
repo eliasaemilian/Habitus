@@ -30,7 +30,7 @@ public class TerrainRenderer {
     private ComputeBuffer _bufVerticesOut, _bufVerticesOutALT;
     private ComputeBuffer _bufHexagonInput, _bufBorderVerticesOut;
 
-    private ComputeBuffer _bufActiveIDs, _bufRemoveIDs, _bufAddIDs;
+    private ComputeBuffer _bufActiveIDs, _bufRemoveIDs, _bufAddIDs, _bufChangeIDs;
     private ComputeBuffer _bufActiveBorderVertices, _bufActiveBorderTriangles;
 
     private Vector4 _size;
@@ -137,6 +137,7 @@ public class TerrainRenderer {
 
     }
 
+
     public void RenderProceduralActiveHexagons() {
         SetActiveIDBuffer();
         ComputeActiveHexagons();
@@ -146,21 +147,26 @@ public class TerrainRenderer {
     public void RemoveHexagon( uint[] ids ) {
         SetToRemoveBuffer( ids );
         ComputeRemoveHexagons( ids.Length );
-        SetActiveIDBuffer();
+        //SetActiveIDBuffer();
         //ComputeActiveBorder();
     }
 
     public void AddHexagon( uint[] ids ) {
-
-
-        for ( int i = 0; i < ids.Length; i++ ) {
-            Debug.Log( "Adding Hex ID " + ids[i] );
-        }
-
-
         SetToAddBuffer( ids );
         ComputeAddHexagons( ids.Length );
-        SetActiveIDBuffer();
+        //SetActiveIDBuffer();
+        //ComputeActiveBorder();
+    }
+    public void ChangeHexagon( uint[] ids, uint[] terrain ) {
+
+        Vector2[] data = new Vector2[ids.Length];
+        for ( int i = 0; i < ids.Length; i++ ) {
+            data[i] = new Vector2( ids[i], terrain[i] );
+        }
+
+        SetToChangeBuffer( data );
+        ComputeChangeHexagons( data.Length );
+        //SetActiveIDBuffer();
         //ComputeActiveBorder();
     }
 
@@ -195,7 +201,7 @@ public class TerrainRenderer {
         MatTerrain.SetBuffer( "Vertices", _bufVerticesOutALT );
     }
 
-    private void SetToRemoveBuffer( uint[] ids ) {
+    private void SetToRemoveBuffer( uint[] ids ) { // TODO: combine
         if ( _bufRemoveIDs != null ) _bufRemoveIDs.Dispose();
 
         _bufRemoveIDs = new ComputeBuffer( ids.Length, sizeof( uint ), ComputeBufferType.Append );
@@ -211,6 +217,14 @@ public class TerrainRenderer {
 
     }
 
+    private void SetToChangeBuffer( Vector2[] ids ) {
+        if ( _bufChangeIDs != null ) _bufChangeIDs.Dispose();
+
+        _bufChangeIDs = new ComputeBuffer( ids.Length, Marshal.SizeOf( typeof( Vector2 ) ), ComputeBufferType.Append );
+        _bufChangeIDs.SetData( ids );
+
+    }
+
     private void ComputeRemoveHexagons( int count ) {
 
         _bufRemoveIDs.SetCounterValue( (uint)count );
@@ -219,8 +233,6 @@ public class TerrainRenderer {
         ComputeTerrainShader.SetBuffer( kernel, "ToRemoveHexIDs", _bufRemoveIDs );
         ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _bufVerticesOutALT );
         ComputeTerrainShader.Dispatch( kernel, count, 1, 1 );
-
-        //  MatTerrain.SetBuffer( "Vertices", _bufVerticesOutALT );
     }
 
     private void ComputeAddHexagons( int count ) {
@@ -233,11 +245,41 @@ public class TerrainRenderer {
         ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _bufVerticesOutALT );
 
         ComputeTerrainShader.Dispatch( kernel, count, 1, 1 );
-
-        MatTerrain.SetBuffer( "Vertices", _bufVerticesOutALT );
     }
 
+    private void ComputeChangeHexagons( int count ) {
 
+        _bufChangeIDs.SetCounterValue( (uint)count );
+
+        int kernel = ComputeTerrainShader.FindKernel( "ChangeHexagons" );
+        ComputeTerrainShader.SetBuffer( kernel, "ToChangeHexIDs", _bufChangeIDs );
+        ComputeTerrainShader.SetBuffer( kernel, "Vertices", _bufVerticesOut );
+        ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _bufVerticesOutALT );
+
+        ComputeTerrainShader.Dispatch( kernel, count, 1, 1 );
+    }
+
+    #region serialization
+    // SERIALIZE DATA
+    public Vector2[] SerializeFromGPU() {
+        int kernel = ComputeTerrainShader.FindKernel( "SerializeMeshData" );
+
+        ComputeBuffer readback = new ComputeBuffer( HexagonCount, Marshal.SizeOf( typeof( Vector2 ) ), ComputeBufferType.Default );
+
+        ComputeTerrainShader.SetBuffer( kernel, "ActiveIDs", _bufActiveIDs );
+        ComputeTerrainShader.SetBuffer( kernel, "CPUReadback", readback );
+        ComputeTerrainShader.SetBuffer( kernel, "VerticesAlt", _bufVerticesOutALT );
+
+        ComputeTerrainShader.Dispatch( kernel, HexagonCount, 1, 1 );
+
+
+        Vector2[] data = new Vector2[HexagonCount];
+        readback.GetData( data );
+        readback.Release();
+
+        return data;
+    }
+    #endregion
     private int GetVertexCount() {
 
         return HexagonCount * 96;
@@ -287,6 +329,7 @@ public class TerrainRenderer {
         if ( _bufActiveBorderTriangles != null ) _bufActiveBorderTriangles.Dispose();
         if ( _bufVerticesOutALT != null ) _bufVerticesOutALT.Dispose();
         if ( _bufRemoveIDs != null ) _bufRemoveIDs.Dispose();
+        if ( _bufChangeIDs != null ) _bufChangeIDs.Dispose();
         if ( _bufAddIDs != null ) _bufAddIDs.Dispose();
     }
 }

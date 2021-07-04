@@ -256,81 +256,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 411024638}
   m_CullTransparentMesh: 0
---- !u!1 &562034141
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 562034143}
-  - component: {fileID: 562034142}
-  m_Layer: 0
-  m_Name: New Playthrough Init
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &562034142
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 562034141}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b25162dc08f8521448d4a658319e9680, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _mapConfig: {fileID: 11400000, guid: a961cecd29d18b5428f68b2ce181d5df, type: 2}
-  _renderSetup: {fileID: 11400000, guid: 94b73cd908979e34ebca1f84a2f155ab, type: 2}
-  DebugGrid:
-    center:
-      ColRow: {x: 0, y: 0}
-      WorldPos: {x: 0, y: 0, z: 0}
-      ElevatedOnZ: 0
-      Hexagon:
-        Center: {x: 0, y: 0, z: 0}
-        BorderVertices: []
-      IsConnected: 
-      Center: {x: 0, y: 0, z: 0}
-    DebugWorldMatrix:
-      e00: 0
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 0
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 0
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 0
-    CenterPoints: []
-    CellsQueued: []
-    RasterVertices: []
---- !u!4 &562034143
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 562034141}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.3799753, y: -2.2981253, z: 5.355579}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &673720166
 GameObject:
   m_ObjectHideFlags: 0
@@ -1048,6 +973,83 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1654486997}
   m_CullTransparentMesh: 0
+--- !u!1 &1664164067
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1664164069}
+  - component: {fileID: 1664164068}
+  m_Layer: 0
+  m_Name: Level StartUpHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1664164068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664164067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 675b9534dea90f24e8b917e2fa4c3920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _mapConfig: {fileID: 11400000, guid: a961cecd29d18b5428f68b2ce181d5df, type: 2}
+  _renderSetup: {fileID: 11400000, guid: 94b73cd908979e34ebca1f84a2f155ab, type: 2}
+  DebugGrid:
+    center:
+      ColRow: {x: 0, y: 0}
+      WorldPos: {x: 0, y: 0, z: 0}
+      ElevatedOnZ: 0
+      Hexagon:
+        Center: {x: 0, y: 0, z: 0}
+        BorderVertices: []
+      IsConnected: 
+      Center: {x: 0, y: 0, z: 0}
+    DebugWorldMatrix:
+      e00: 0
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 0
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 0
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 0
+    CenterPoints: []
+    CellsQueued: []
+    RasterVertices: []
+  forceFreshBuild: 0
+  debugSave: {fileID: 11400000, guid: d5abb74ff1325f749959b68dc524d136, type: 2}
+--- !u!4 &1664164069
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664164067}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1721094688
 GameObject:
   m_ObjectHideFlags: 0

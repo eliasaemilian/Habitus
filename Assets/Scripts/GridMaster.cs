@@ -5,10 +5,19 @@ using UnityEngine;
 public class GridMaster : InstantiatedGridComponent {
     float r; float w;
 
-
+    [SerializeField] private Vector2[] DebugInfo;
     private void Update() {
-        if ( Input.GetMouseButtonUp( 0 ) ) OnClickNeighbourDebug();
+
+        // DEBUG INPUT
+        if ( Input.GetMouseButtonUp( 0 ) && Input.GetKey( KeyCode.LeftShift ) ) OnClickChangeHexagon();
+        else if ( Input.GetMouseButtonUp( 0 ) ) OnClickRemoveHexagon();
         else if ( Input.GetMouseButtonUp( 1 ) ) OnClickAddHexagon();
+
+        if ( Input.GetKeyDown( KeyCode.Space ) ) {
+            DebugInfo = Grid.SerializeData();
+            FindObjectOfType<SerializationHandler>().DebugSetGPUSaveData( DebugInfo );
+            Debug.Log( "Serialization completed" );
+        }
 
     }
     private void ClearGrid() {
@@ -62,12 +71,9 @@ public class GridMaster : InstantiatedGridComponent {
 
     // ------------------------------------------------------------- DEBUG FUNCTIONS ------------------------------------------------------------ //
 
-    public void OnClickNeighbourDebug() {
-        Debug.Log( "Click" );
-        if ( GetCellOnClick( out Vector2Int hex ) ) {
+    public void OnClickRemoveHexagon() {
 
-            //  Grid.Cells[hex.x, hex.y].Tile.RefGO.GetComponent<MeshRenderer>().materials[1].color = Color.red;
-            //  Grid.Cells[hex.x, hex.y].SetNeighbours( Grid.Size );
+        if ( GetCellOnClick( out Vector2Int hex ) ) {
             Debug.Log( $"Clicked on Col: {Grid.Cells[hex.x, hex.y].ColRow.x}, Row: {Grid.Cells[hex.x, hex.y].ColRow.y}." );
             uint id = Grid.GetHexIDByColRow( hex.y, hex.x );
 
@@ -88,6 +94,17 @@ public class GridMaster : InstantiatedGridComponent {
             Debug.Log( "Add " + id );
         }
 
+    }
+
+    private void OnClickChangeHexagon() {
+        if ( GetCellOnClick( out Vector2Int hex ) ) {
+
+            Debug.Log( $"Clicked on Col: {Grid.Cells[hex.x, hex.y].ColRow.x}, Row: {Grid.Cells[hex.x, hex.y].ColRow.y}." );
+            uint id = Grid.GetHexIDByColRow( hex.y, hex.x );
+
+            Grid.ChangeHexagon( new uint[] { id }, new uint[] { 1 } );
+            Debug.Log( "Change " + id );
+        }
     }
 
     #region CPU ALT TODO
