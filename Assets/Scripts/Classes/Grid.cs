@@ -83,12 +83,17 @@ public class Grid {
     public void RemoveHexagon( uint[] ids ) {
         for ( int i = 0; i < ids.Length; i++ ) {
             if ( ActiveHexagons.Contains( ids[i] ) ) ActiveHexagons.Remove( ids[i] );
-            else Debug.LogError( "Fucked up" );
         }
 
-
-        //  SetActiveHexagonsForRender();
         _terrainRenderer.RemoveHexagon( ids );
+    }
+
+    public void AddHexagon( uint[] ids ) {
+        for ( int i = 0; i < ids.Length; i++ ) {
+            if ( !ActiveHexagons.Contains( ids[i] ) ) ActiveHexagons.Add( ids[i] );
+        }
+
+        _terrainRenderer.AddHexagon( ids );
     }
 
 

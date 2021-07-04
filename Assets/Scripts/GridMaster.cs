@@ -8,6 +8,7 @@ public class GridMaster : InstantiatedGridComponent {
 
     private void Update() {
         if ( Input.GetMouseButtonUp( 0 ) ) OnClickNeighbourDebug();
+        else if ( Input.GetMouseButtonUp( 1 ) ) OnClickAddHexagon();
 
     }
     private void ClearGrid() {
@@ -72,6 +73,19 @@ public class GridMaster : InstantiatedGridComponent {
 
             Grid.RemoveHexagon( new uint[] { id } );
             Debug.Log( "Removed " + id );
+        }
+
+    }
+
+    public void OnClickAddHexagon() {
+
+        if ( GetCellOnClick( out Vector2Int hex ) ) {
+
+            Debug.Log( $"Clicked on Col: {Grid.Cells[hex.x, hex.y].ColRow.x}, Row: {Grid.Cells[hex.x, hex.y].ColRow.y}." );
+            uint id = Grid.GetHexIDByColRow( hex.y, hex.x );
+
+            Grid.AddHexagon( new uint[] { id } );
+            Debug.Log( "Add " + id );
         }
 
     }

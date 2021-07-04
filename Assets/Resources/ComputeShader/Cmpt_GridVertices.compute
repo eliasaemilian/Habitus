@@ -120,9 +120,7 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID ) {
         float3( c.x, c.y, c.z + w )
     };
              
-     // Factor 0
-    
-        
+     // Factor 0       
     if ( HexInput[hid].tesselation.x > 0 ) {
         n = hid * 96;
 
@@ -174,14 +172,17 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID ) {
 }
 
 RWStructuredBuffer<Vertex> VerticesAlt;
+ConsumeStructuredBuffer<uint> ToAddHexIDs;
 
 [numthreads( NUM_THREADS, 1, 1 )]
 void AppendHexagons( uint3 id : SV_DispatchThreadID ) {
-    uint hid = ActiveIDs.Consume();
+    uint hid = ToAddHexIDs.Consume();
     
     uint n = hid * 96;
     for ( uint i = 0; i < 96; i++ ) {
-        VerticesAlt[n + i] = Vertices[n + i];
+
+        VerticesAlt[n + i].pos = Vertices[n + i].pos;
+       
         //Triangle tris;
         //tris.v[0] = Vertices[hid + i];
         //tris.v[0] = Vertices[hid + i + 1];
@@ -193,7 +194,7 @@ void AppendHexagons( uint3 id : SV_DispatchThreadID ) {
 
 ConsumeStructuredBuffer<uint> ToRemoveHexIDs;
 
-[numthreads( 1, 1, 1 )]
+[numthreads( NUM_THREADS, 1, 1 )]
 void RemoveHexagons( uint3 id : SV_DispatchThreadID ) {
     uint hid = ToRemoveHexIDs.Consume();
     
