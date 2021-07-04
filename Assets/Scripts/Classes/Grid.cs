@@ -99,7 +99,7 @@ public class Grid {
 
     private void UpdateNeighbours() {
         for ( int i = 0; i < ActiveHexagons.Count; i++ ) {
-
+            // TODO
         }
     }
 

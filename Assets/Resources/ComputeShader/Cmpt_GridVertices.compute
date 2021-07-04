@@ -171,12 +171,17 @@ void GenGridVertices( uint3 id : SV_DispatchThreadID ) {
      
 }
 
+
 RWStructuredBuffer<Vertex> VerticesAlt;
 ConsumeStructuredBuffer<uint> ToAddHexIDs;
 
-[numthreads( NUM_THREADS, 1, 1 )]
+[numthreads( 1, 1, 1 )]
 void AppendHexagons( uint3 id : SV_DispatchThreadID ) {
     uint hid = ToAddHexIDs.Consume();
+
+    uint structs, stride;
+    ToAddHexIDs.GetDimensions( structs, stride );
+
     
     uint n = hid * 96;
     for ( uint i = 0; i < 96; i++ ) {
@@ -190,11 +195,12 @@ void AppendHexagons( uint3 id : SV_DispatchThreadID ) {
         //ActiveHexagonTris.Append( tris );
     }
     // append hex vertices by offset
+
 }
 
 ConsumeStructuredBuffer<uint> ToRemoveHexIDs;
 
-[numthreads( NUM_THREADS, 1, 1 )]
+[numthreads( 1, 1, 1 )]
 void RemoveHexagons( uint3 id : SV_DispatchThreadID ) {
     uint hid = ToRemoveHexIDs.Consume();
     
